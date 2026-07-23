@@ -5,18 +5,24 @@ function App() {
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!message.trim()) return
 
     const userMsg = { role: 'user', content: message }
-    const aiMsg = { role: 'assistant', content: `「${message}」を調査中です...` }
-
     setMessages((prev) => [...prev, userMsg])
     setMessage('')
 
-    setTimeout(() => {
-      setMessages((prev) => [...prev, aiMsg])
-    }, 1000)
+    try {
+      const res = await fetch('http://127.0.0.1:9000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      })
+      const data = await res.json()
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+    } catch {
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'エラー: サーバーに接続できません' }])
+    }
   }
 
   return (
@@ -36,9 +42,12 @@ function App() {
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
           placeholder="メッセージを入力..."
         />
+        {/*
+        * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
+        */}
         <button onClick={handleSend}>送信</button>
       </div>
     </div>
