@@ -18,8 +18,30 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       })
-      const data = await res.json()
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+      // const data = await res.json()
+      // setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
+      // const data = await res.json()
+      // const stepMessages = data.steps.map((step: { type: string; content: string }) => ({
+      //   role: 'assistant',
+      //   content: `[${step.type}] ${step.content}`,
+      // }))
+      // setMessages((prev) => [...prev, ...stepMessages])
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value)
+        const lines = text.split('\n').filter((line) => line.startsWith('data: '))
+
+        for (const line of lines) {
+          const step = JSON.parse(line.replace('data: ', ''))
+          setMessages((prev) => [...prev, { role: 'assistant', content: `[${step.type}] ${step.content}` }])
+        }
+      }
     } catch {
       setMessages((prev) => [...prev, { role: 'assistant', content: 'エラー: サーバーに接続できません' }])
     }
