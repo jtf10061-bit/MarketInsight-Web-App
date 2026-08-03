@@ -83,6 +83,34 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
+.message-step {
+  color: #0ea5e9;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 8px 20px;
+  font-size: 13.5px;
+  max-width: 80%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  border-radius: 18px 18px 18px 4px;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.typing-cursor::after {
+  content: " ";
+  animation: blink 0.8s infinite
+}
+
 .input-area {
   position: fixed;
   bottom: 0;
