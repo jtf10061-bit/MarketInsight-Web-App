@@ -58,7 +58,6 @@ function App() {
   // const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
   const [currentStep, setCurrentStep] = useState<{ type: string; content: string} | null >(null)
   const [isStreaming, setIsStreaming] = useState(false)
-  const chatAreaRef = useRef<HTMLDivElement>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const [chats, setChats] = useState<Chat[]>([])
@@ -67,12 +66,15 @@ function App() {
   const messages = activeChat?.messages ?? []
   const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
 
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      const el = document.querySelector('.chat-area')
+      if (el) {
+        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" })
+      }
+    }, 100)
+  }
 
-  useEffect(() => {
-    if(chatAreaRef.current) {
-      chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight
-    }
-  }, [messages, currentStep])
 
   useEffect(() => {
     fetch(`${API}/chats/${USER_ID}`)
@@ -144,8 +146,9 @@ function App() {
         c.id === chatId ? { ...c, title: c.title === "新しいチャット" ? message.slice(0, 20): c.title, messages: [...c.messages, userMsg]}: c
       )
     )
+    scrollToBottom()
 
-    fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
+    await fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ role: "user", content: message})
@@ -199,6 +202,7 @@ function App() {
                 c.id === chatId ? { ...c, messages: [...c.messages, { role: "assistant", content: step.content}]}: c
               )
             )
+            scrollToBottom()
             fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -300,11 +304,11 @@ function App() {
         <div className="header-icon" />
         <span className="header-title">MarketInsight AI</span>
       </div>
-      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} ref={chatAreaRef}>
+      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`}>
           {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
-              <TypingText text={msg.content} speed={20} onDone={() => setLastAnswerId(null)}/>
+              <TypingText text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
             ):(
               <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
             )}
