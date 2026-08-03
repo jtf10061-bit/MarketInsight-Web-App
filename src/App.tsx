@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
+type Chat = {
+  id: string
+  title: string
+  date: string
+  messages: {
+    role: string
+    content: string
+  }[]
+}
+
 function TypingText({ text, speed = 30, onDone}: { text: string; speed?: number; onDone?: () => void}) {
   const [displayed, setDisplayed] = useState("")
   const doneRef = useRef(false)
@@ -26,12 +36,29 @@ function TypingText({ text, speed = 30, onDone}: { text: string; speed?: number;
   return <span className={displayed.length < text.length ? 'typing-cursor': " "} >{displayed}</span>
 }
 
+function formatDate(dateStr: string): string {
+  const today = new Date()
+  const date = new Date(dateStr)
+  const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000*60*60*24))
+
+  if (diffDays === 0) return "今日"
+  if (diffDays === 1) return "昨日"
+  if (diffDays <= 7) return "過去7日間"
+  return `${date.getMonth() + 1}月`
+}
+
 function App() {
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
+  // const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
   const [currentStep, setCurrentStep] = useState<{ type: string; content: string} | null >(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const chatAreaRef = useRef<HTMLDivElement>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const [chats, setChats] = useState<Chat[]>([])
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const activeChat = chats.find((c) => c.id === activeChatId)
+  const messages = activeChat?.messages ?? []
 
   useEffect(() => {
     if(chatAreaRef.current) {
@@ -39,11 +66,41 @@ function App() {
     }
   }, [messages, currentStep])
 
+  const createNewChat = () => {
+    const newChat: Chat = {
+      id: Date.now().toString(),
+      title: "新しいチャット",
+      date: new Date().toISOString().split('T')[0],
+      messages: [],
+    }
+    setChats((prev) => [newChat, ...prev])
+    setActiveChatId(newChat.id)
+    setCurrentStep(null)
+  }
+
   const handleSend = async () => {
     if (!message.trim() || isStreaming) return
 
+    const chatId = activeChatId ?? Date.now().toString()
+
+    if(!activeChatId) {
+      const newChat: Chat = {
+        id: chatId,
+        title: message.slice(0, 20),
+        date: new Date().toISOString().split('T')[0],
+        messages: []
+      }
+      setChats((prev) => [newChat, ...prev])
+      setActiveChatId(chatId)
+    }
+
     const userMsg = { role: 'user', content: message }
-    setMessages((prev) => [...prev, userMsg])
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === chatId ? { ...c, title: c.title === "新しいチャット" ? message.slice(0, 20): c.title, messages: [...c.messages, userMsg]}: c
+      )
+    )
+    // setMessages((prev) => [...prev, userMsg])
     setMessage('')
     setIsStreaming(true)
 
@@ -77,7 +134,11 @@ function App() {
 
           if(step.type === "answer") {
             setCurrentStep(null)
-            setMessages((prev) => [...prev, { role: 'assistant', content: `[${step.type}] ${step.content}` }])
+            setChats((prev) =>
+              prev.map((c) =>
+                c.id === chatId ? { ...c, messages: [...c.messages, { role: "assistant", content: step.content}]}: c
+              )
+            )
           } else {
             setCurrentStep(step)
           }
@@ -85,19 +146,66 @@ function App() {
       }
     } catch {
       setCurrentStep(null)
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'エラー: サーバーに接続できません' }])
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === chatId ? {
+            ...c, messages: [...c.messages, {role: "assistant", content: "エラー: サーバーに接続できません"}]
+          }
+          : c
+        )
+      )
+      // setMessages((prev) => [...prev, { role: 'assistant', content: 'エラー: サーバーに接続できません' }])
     }
     setIsStreaming(false)
   }
 
+  const groupedChats = chats.reduce<Record<string, Chat[]>>((groups, chat) => {
+    const label = formatDate(chat.date)
+    if(!groups[label])groups[label] = []
+    groups[label].push(chat)
+    return groups
+  }, {})
+
   return (
     <div className="app">
-      <div className="header">
+      {sidebarOpen && (
+        <div className="sidebar">
+          <div className="sidebar-header">
+            <button className="new-chat-button" onClick={createNewChat}>
+              + 新しいチャット
+            </button>
+            <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
+              ✕
+            </button>
+          </div>
+          <div className="chat-list">
+            {Object.entries(groupedChats).map(([dateLabel, chatGroup]) => (
+              <div key={dateLabel}>
+                <div className="chat-list-date">{dateLabel}</div>
+                {chatGroup.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`chat-list-item ${chat.id === activeChatId ? 'active' : ''}`}
+                    onClick={() => { setActiveChatId(chat.id); setCurrentStep(null); }}
+                  >
+                    {chat.title}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className={`header ${sidebarOpen ? '' : 'full-width'}`}>
+        {!sidebarOpen && (
+          <button className='sidebar-open' onClick={() => setSidebarOpen(true)}>☰</button>
+        )}
         <div className="header-icon" />
         <span className="header-title">MarketInsight AI</span>
       </div>
-      <div className="chat-area" ref={chatAreaRef}>
-        {messages.map((msg, index) => (
+      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} ref={chatAreaRef}>
+          {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
             {msg.role === "assistant" && index === messages.length -1 && isStreaming === false ? (
               <TypingText text={msg.content} speed={20} />
@@ -112,7 +220,7 @@ function App() {
           </div>
         )}
       </div>
-      <div className="input-area">
+      <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`}>
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
