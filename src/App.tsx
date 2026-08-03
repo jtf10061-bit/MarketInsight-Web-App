@@ -5,6 +5,7 @@ type Chat = {
   id: string
   title: string
   date: string
+  favorite: boolean
   messages: {
     role: string
     content: string
@@ -59,6 +60,7 @@ function App() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const activeChat = chats.find((c) => c.id === activeChatId)
   const messages = activeChat?.messages ?? []
+const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
 
   useEffect(() => {
     if(chatAreaRef.current) {
@@ -71,11 +73,28 @@ function App() {
       id: Date.now().toString(),
       title: "新しいチャット",
       date: new Date().toISOString().split('T')[0],
+      favorite: false,
       messages: [],
     }
     setChats((prev) => [newChat, ...prev])
     setActiveChatId(newChat.id)
     setCurrentStep(null)
+  }
+
+  const deleteChat = (id: string) => {
+    setChats((prev) => prev.filter((c) => c.id !== id))
+    if(activeChatId === id) {
+      setActiveChatId(null)
+      setCurrentStep(null)
+    }
+  }
+
+  const toggleFavorite = (id: string) => {
+    setChats((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, favorite: !c.favorite} : c
+      )
+    )
   }
 
   const handleSend = async () => {
@@ -88,6 +107,7 @@ function App() {
         id: chatId,
         title: message.slice(0, 20),
         date: new Date().toISOString().split('T')[0],
+        favorite: false,
         messages: []
       }
       setChats((prev) => [newChat, ...prev])
@@ -134,6 +154,7 @@ function App() {
 
           if(step.type === "answer") {
             setCurrentStep(null)
+            setLastAnswerId(chatId)
             setChats((prev) =>
               prev.map((c) =>
                 c.id === chatId ? { ...c, messages: [...c.messages, { role: "assistant", content: step.content}]}: c
@@ -159,7 +180,10 @@ function App() {
     setIsStreaming(false)
   }
 
-  const groupedChats = chats.reduce<Record<string, Chat[]>>((groups, chat) => {
+  const favoriteChats = chats.filter((c) => c.favorite)
+  const nonFavoriteChats = chats.filter((c) => !c.favorite)
+
+  const groupedChats = nonFavoriteChats.reduce<Record<string, Chat[]>>((groups, chat) => {
     const label = formatDate(chat.date)
     if(!groups[label])groups[label] = []
     groups[label].push(chat)
@@ -179,6 +203,29 @@ function App() {
             </button>
           </div>
           <div className="chat-list">
+            {favoriteChats.length > 0 && (
+              <div>
+                <div className="chat-list-date">お気に入り</div>
+                {favoriteChats.map((chat) => (
+                  <div
+                  key={chat.id}
+                  className={`chat-list-item ${chat.id === activeChatId ? 'active': ''}`}
+                  onClick={() => {setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null)}}
+                  >
+                    <span className="chat-list-title">{chat.title}</span>
+                    <div className='chat-list-actions'>
+                      <button className="chat-action-btn" onClick={(e) => {
+                        e.stopPropagation(); toggleFavorite(chat.id);
+                        }}>⭐︎</button>
+                      <button className='chat-action-btn' onClick={(e) => {
+                        e.stopPropagation(); deleteChat(chat.id);
+                      }}>×</button>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
             {Object.entries(groupedChats).map(([dateLabel, chatGroup]) => (
               <div key={dateLabel}>
                 <div className="chat-list-date">{dateLabel}</div>
@@ -186,9 +233,14 @@ function App() {
                   <div
                     key={chat.id}
                     className={`chat-list-item ${chat.id === activeChatId ? 'active' : ''}`}
-                    onClick={() => { setActiveChatId(chat.id); setCurrentStep(null); }}
+                    onClick={() => { setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null) }}
                   >
-                    {chat.title}
+                    {/* {chat.title} */}
+                    <span className="chat-list-title">{chat.title}</span>
+                    <div className="chat-list-actions">
+                      <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); toggleFavorite(chat.id); }}>☆</button>
+                      <button className="chat-action-btn chat-delete-btn" onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>✕</button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -207,7 +259,7 @@ function App() {
       <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} ref={chatAreaRef}>
           {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
-            {msg.role === "assistant" && index === messages.length -1 && isStreaming === false ? (
+            {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
               <TypingText text={msg.content} speed={20} />
             ):(
               msg.content

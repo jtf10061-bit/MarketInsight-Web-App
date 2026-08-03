@@ -199,9 +199,9 @@
   color: #475569;
   border-radius: 8px;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   transition: background-color 0.15s;
 }
 
@@ -214,6 +214,44 @@
   background-color: #e0f2fe;
   color: #0369a1;
   font-weight: 500;
+}
+
+.chat-list-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-list-actions {
+  display: none;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.chat-list-item:hover .chat-list-actions {
+  display: flex;
+}
+
+.chat-action-btn {
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: #94a3b8;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.chat-action-btn:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.chat-delete-btn:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
 }
 
 .sidebar-open {
