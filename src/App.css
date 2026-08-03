@@ -1,3 +1,6 @@
+/* ============================
+   全体レイアウト
+   ============================ */
 .app {
   position: relative;
   height: 100dvh;
@@ -5,6 +8,9 @@
   display: flex;
 }
 
+/* ============================
+   ヘッダー
+   ============================ */
 .header {
   position: fixed;
   top: 0;
@@ -35,6 +41,9 @@
   letter-spacing: 0.3px;
 }
 
+/* ============================
+   チャットエリア
+   ============================ */
 .chat-area {
   position: fixed;
   top: 58px;
@@ -62,6 +71,9 @@
   border-radius: 3px;
 }
 
+/* ============================
+   メッセージ（共通・ユーザー・AI）
+   ============================ */
 .message {
   padding: 16px 20px;
   max-width: 65%;
@@ -86,6 +98,9 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
+/* ============================
+   思考過程ステップ表示
+   ============================ */
 .message-step {
   color: #0ea5e9;
   background-color: transparent;
@@ -100,6 +115,9 @@
   border-radius: 18px 18px 18px 4px;
 }
 
+/* ============================
+   タイピングカーソルアニメーション
+   ============================ */
 @keyframes blink {
   0%, 100% {
     opacity: 1;
@@ -109,6 +127,14 @@
   }
 }
 
+.typing-cursor::after {
+  content: " ";
+  animation: blink 0.8s infinite;
+}
+
+/* ============================
+   サイドバー
+   ============================ */
 .sidebar {
   position: fixed;
   top: 0;
@@ -151,6 +177,23 @@
   color: #1e293b;
 }
 
+.sidebar-open {
+  padding: 6px 10px;
+  background-color: transparent;
+  border: none;
+  font-size: 18px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sidebar-open:hover {
+  color: #1e293b;
+}
+
+/* ============================
+   新規チャットボタン
+   ============================ */
 .new-chat-button {
   flex: 1;
   padding: 10px 16px;
@@ -168,6 +211,9 @@
   background-color: #0284c7;
 }
 
+/* ============================
+   チャット履歴リスト
+   ============================ */
 .chat-list {
   flex: 1;
   overflow-y: auto;
@@ -223,6 +269,9 @@
   text-overflow: ellipsis;
 }
 
+/* ============================
+   チャット履歴のアクションボタン（お気に入り・削除）
+   ============================ */
 .chat-list-actions {
   display: none;
   gap: 2px;
@@ -254,31 +303,18 @@
   color: #dc2626;
 }
 
-.sidebar-open {
-  padding: 6px 10px;
-  background-color: transparent;
-  border: none;
-  font-size: 18px;
-  color: #64748b;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.sidebar-open:hover {
-  color: #1e293b;
-}
-
+/* ============================
+   サイドバー開閉時のレイアウト切り替え
+   ============================ */
 .header.full-width,
 .chat-area.full-width,
 .input-area.full-width {
   left: 0;
 }
 
-.typing-cursor::after {
-  content: " ";
-  animation: blink 0.8s infinite
-}
-
+/* ============================
+   入力エリア
+   ============================ */
 .input-area {
   position: fixed;
   bottom: 0;
@@ -331,4 +367,45 @@
 .input-area button:hover {
   background-color: #0284c7;
   box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+/* ============================
+   AI回答のMarkdown整形
+   ============================ */
+.message-assistant h1,
+.message-assistant h2,
+.message-assistant h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.message-assistant h1 {
+  font-size: 17px;
+}
+
+.message-assistant h2 {
+  font-size: 15.5px;
+}
+
+.message-assistant h3 {
+  font-size: 14.5px;
+}
+
+.message-assistant p {
+  margin: 8px 0;
+}
+
+.message-assistant ul,
+.message-assistant ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.message-assistant li {
+  margin: 4px 0;
+}
+
+.message-assistant li::marker {
+  color: #94a3b8;
 }
