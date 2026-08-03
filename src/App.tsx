@@ -49,6 +49,10 @@ function formatDate(dateStr: string): string {
   return `${date.getMonth() + 1}月`
 }
 
+const API = "http://127.0.0.1:9000"
+const USER_ID = "test-user"
+
+
 function App() {
   const [message, setMessage] = useState('')
   // const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
@@ -61,13 +65,20 @@ function App() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const activeChat = chats.find((c) => c.id === activeChatId)
   const messages = activeChat?.messages ?? []
-const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
+  const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
+
 
   useEffect(() => {
     if(chatAreaRef.current) {
       chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight
     }
   }, [messages, currentStep])
+
+  useEffect(() => {
+    fetch(`${API}/chats/${USER_ID}`)
+      .then((res) => res.json())
+      .then((data) => setChats(data))
+  }, [])
 
   const createNewChat = () => {
     const newChat: Chat = {
@@ -80,6 +91,11 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
     setChats((prev) => [newChat, ...prev])
     setActiveChatId(newChat.id)
     setCurrentStep(null)
+    fetch(`${API}/chats`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ id: newChat.id, title: newChat.title, date: newChat.date, user_id: USER_ID }),
+    })
   }
 
   const deleteChat = (id: string) => {
@@ -88,6 +104,7 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
       setActiveChatId(null)
       setCurrentStep(null)
     }
+    fetch(`${API}/chats/${USER_ID}/${id}`, { method: "DELETE"})
   }
 
   const toggleFavorite = (id: string) => {
@@ -96,6 +113,7 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
         c.id === id ? { ...c, favorite: !c.favorite} : c
       )
     )
+    fetch(`${API}/chats/${USER_ID}/${id}/favorite`, {method: "PATCH"})
   }
 
   const handleSend = async () => {
@@ -113,6 +131,11 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
       }
       setChats((prev) => [newChat, ...prev])
       setActiveChatId(chatId)
+      fetch(`${API}/chats`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ id: newChat.id, title: newChat.title, date: newChat.date, user_id: USER_ID}),
+      })
     }
 
     const userMsg = { role: 'user', content: message }
@@ -121,15 +144,30 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
         c.id === chatId ? { ...c, title: c.title === "新しいチャット" ? message.slice(0, 20): c.title, messages: [...c.messages, userMsg]}: c
       )
     )
+
+    fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ role: "user", content: message})
+    })
+    if (message.slice(0, 20) !== "新しいチャット") {
+      fetch(`${API}/chats/${USER_ID}/${chatId}/title`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: message.slice(0, 20) }),
+      })
+    }
     // setMessages((prev) => [...prev, userMsg])
+    const sendMessage = message
     setMessage('')
     setIsStreaming(true)
 
     try {
-      const res = await fetch('http://127.0.0.1:9000/chat', {
+      // const res = await fetch('http://127.0.0.1:9000/chat', {
+      const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message: sendMessage }),
       })
       // const data = await res.json()
       // setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
@@ -161,6 +199,11 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
                 c.id === chatId ? { ...c, messages: [...c.messages, { role: "assistant", content: step.content}]}: c
               )
             )
+            fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ role: "assistant", content: step.content }),
+            })
           } else {
             setCurrentStep(step)
           }
@@ -263,7 +306,7 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
               <TypingText text={msg.content} speed={20} onDone={() => setLastAnswerId(null)}/>
             ):(
-              msg.role === "assistant" ? <ReactMarkdown>{msg.content}</ReactMarkdown>: msg.content
+              <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
             )}
           </div>
         ))}
