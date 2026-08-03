@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import ReactMarkdown from 'react-markdown'
 
 type Chat = {
   id: string
@@ -260,9 +261,9 @@ const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
           {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
-              <TypingText text={msg.content} speed={20} />
+              <TypingText text={msg.content} speed={20} onDone={() => setLastAnswerId(null)}/>
             ):(
-              msg.content
+              msg.role === "assistant" ? <ReactMarkdown>{msg.content}</ReactMarkdown>: msg.content
             )}
           </div>
         ))}
