@@ -409,3 +409,22 @@
 .message-assistant li::marker {
   color: #94a3b8;
 }
+
+.message-assistant table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.message-assistant th,
+.message-assistant td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  text-align: left;
+}
+
+.message-assistant th {
+  background-color: #e2e8f0;
+  font-weight: 600;
+}

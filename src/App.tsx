@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import ReactMarkdown from 'react-markdown'
+// @ts-ignore
+import remarkGfm from 'remark-gfm'
 
 type Chat = {
   id: string
@@ -310,7 +312,8 @@ function App() {
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
               <TypingText text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
             ):(
-              <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
+              // <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
             )}
           </div>
         ))}
