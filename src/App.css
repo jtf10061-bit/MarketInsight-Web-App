@@ -191,6 +191,21 @@
   color: #1e293b;
 }
 
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.sidebar-resize-handle:hover {
+  background-color: #0ea5e9;
+}
+
 /* ============================
    新規チャットボタン
    ============================ */

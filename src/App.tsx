@@ -69,6 +69,28 @@ function App() {
   const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null) // useRef: 際レンダリングを起こさず、データを保持しておくための箱
 
+  const [sidebarWidth, setSidebarWidth] = useState(260)
+  const isResizing = useRef(false)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if(!isResizing.current) return
+      const newWidth = Math.max(200, Math.min(500, e.clientX))
+      setSidebarWidth(newWidth)
+    }
+    const handleMouseUp = () => {
+      isResizing.current = false
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+    }
+    window.addEventListener("mousemove", handleMouseMove)
+    window.addEventListener("mouseup", handleMouseUp)
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove)
+      window.removeEventListener("mouseup", handleMouseUp)
+    }
+  }, [])
+
   const scrollToBottom = () => {
     setTimeout(() => {
       const el = document.querySelector('.chat-area')
@@ -77,7 +99,6 @@ function App() {
       }
     }, 100)
   }
-
 
   useEffect(() => {
     fetch(`${API}/chats/${USER_ID}`)
@@ -250,7 +271,7 @@ function App() {
   return (
     <div className="app">
       {sidebarOpen && (
-        <div className="sidebar">
+        <div className="sidebar" style={{ width: sidebarWidth }}>
           <div className="sidebar-header">
             <button className="new-chat-button" onClick={createNewChat}>
               + 新しいチャット
@@ -303,17 +324,23 @@ function App() {
               </div>
             ))}
           </div>
+          <div className='sidebar-resize-handle' onMouseDown={() => {
+              isResizing.current = true
+              document.body.style.cursor = "col-resize"
+              document.body.style.userSelect = "none"
+            }}
+          />
         </div>
       )}
 
-      <div className={`header ${sidebarOpen ? '' : 'full-width'}`}>
+      <div className={`header ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
         {!sidebarOpen && (
           <button className='sidebar-open' onClick={() => setSidebarOpen(true)}>☰</button>
         )}
         <div className="header-icon" />
         <span className="header-title">MarketInsight AI</span>
       </div>
-      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`}>
+      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
           {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
@@ -330,7 +357,7 @@ function App() {
           </div>
         )}
       </div>
-      <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`}>
+      <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
