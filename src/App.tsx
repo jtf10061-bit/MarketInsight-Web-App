@@ -67,6 +67,7 @@ function App() {
   const activeChat = chats.find((c) => c.id === activeChatId)
   const messages = activeChat?.messages ?? []
   const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null) // useRef: 際レンダリングを起こさず、データを保持しておくための箱
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -168,11 +169,12 @@ function App() {
     setIsStreaming(true)
 
     try {
-      // const res = await fetch('http://127.0.0.1:9000/chat', {
+      abortRef.current = new AbortController()
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: sendMessage }),
+        signal: abortRef.current.signal
       })
       // const data = await res.json()
       // setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }])
@@ -215,19 +217,24 @@ function App() {
           }
         }
       }
-    } catch {
+    } catch(e) {
       setCurrentStep(null)
-      setChats((prev) =>
-        prev.map((c) =>
-          c.id === chatId ? {
-            ...c, messages: [...c.messages, {role: "assistant", content: "エラー: サーバーに接続できません"}]
-          }
-          : c
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        // 中止時は何もしない
+      } else {
+        setChats((prev) =>
+          prev.map((c) =>
+            c.id === chatId ? {
+              ...c, messages: [...c.messages, {role: "assistant", content: "エラー: サーバーに接続できません"}]
+            }
+            : c
+          )
         )
-      )
+      }
       // setMessages((prev) => [...prev, { role: 'assistant', content: 'エラー: サーバーに接続できません' }])
     }
     setIsStreaming(false)
+    abortRef.current = null
   }
 
   const favoriteChats = chats.filter((c) => c.favorite)
@@ -333,7 +340,11 @@ function App() {
         {/*
         * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
         */}
-        <button onClick={handleSend}>送信</button>
+        {isStreaming ? (
+          <button onClick={() => abortRef.current?.abort()}>中止</button>
+        ) : (
+          <button onClick={handleSend}>送信</button>
+        )}
       </div>
     </div>
   )
