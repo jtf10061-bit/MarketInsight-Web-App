@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 import ReactMarkdown from 'react-markdown'
-// @ts-ignore
 import remarkGfm from 'remark-gfm'
+import TypingText from './components/TypingText'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
+import { loginRequest } from './config/msalConfig'
 
 type Chat = {
   id: string
@@ -13,31 +15,6 @@ type Chat = {
     role: string
     content: string
   }[]
-}
-
-function TypingText({ text, speed = 30, onDone}: { text: string; speed?: number; onDone?: () => void}) {
-  const [displayed, setDisplayed] = useState("")
-  const doneRef = useRef(false)
-
-  useEffect(() => {
-    setDisplayed("")
-    doneRef.current = false
-    let i = 0
-    const timer = setInterval(() => {
-      i++
-      setDisplayed(text.slice(0, i))
-      if (i >= text.length) {
-        clearInterval(timer)
-        if(!doneRef.current) {
-          doneRef.current = true
-          onDone?.()
-        }
-      }
-    }, speed)
-    return () => clearInterval(timer)
-  }, [text])
-
-  return <span className={displayed.length < text.length ? 'typing-cursor': " "} >{displayed}</span>
 }
 
 function formatDate(dateStr: string): string {
@@ -52,8 +29,6 @@ function formatDate(dateStr: string): string {
 }
 
 const API = "http://127.0.0.1:9000"
-const USER_ID = "test-user"
-
 
 function App() {
   const [message, setMessage] = useState('')
@@ -68,9 +43,27 @@ function App() {
   const messages = activeChat?.messages ?? []
   const [lastAnswerId, setLastAnswerId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null) // useRef: 際レンダリングを起こさず、データを保持しておくための箱
-
+  // サイドバーのサイズ変更
   const [sidebarWidth, setSidebarWidth] = useState(260)
   const isResizing = useRef(false)
+  // ログイン関連の変数
+  const { instance, accounts } = useMsal()
+  const isAuthenticated = useIsAuthenticated()
+  /*
+   * ?? は「Null合体演算子」
+   * 例:
+   * const userName = accounts[0]?.name ?? ''
+   * accounts[0]?.name が値を持っていれば → その値を使う
+   * accounts[0]?.name が null または undefined なら → ''（空文字）を使う
+   */
+  const userName = accounts[0]?.name ?? ""
+  const userEmail = accounts[0]?.username ?? ""
+  const USER_ID = userEmail
+
+  const handleLogin = () => {
+    instance.loginRedirect(loginRequest)
+  }
+
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -101,10 +94,37 @@ function App() {
   }
 
   useEffect(() => {
+    if (!isAuthenticated) return
     fetch(`${API}/chats/${USER_ID}`)
       .then((res) => res.json())
       .then((data) => setChats(data))
-  }, [])
+  }, [isAuthenticated])
+
+  if(!isAuthenticated) {
+    return (
+      <div className="app" style={{justifyContent: "center", alignItems: "center"}}>
+        <div style={{ textAlign: "center"}}>
+          <h1 style={{ fontSize: "24px", marginBottom: "16px", color: "#1e293b"}}>
+            MarketInsight AI
+          </h1>
+          <p style={{ marginBottom: '24px', color: '#64748b' }}>
+            Microsoftアカウントでログインしてください
+          </p>
+          <button onClick={handleLogin} style={{
+            padding: '12px 32px',
+            backgroundColor: '#0ea5e9',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '15px',
+            cursor: 'pointer'
+          }}>
+            ログイン
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const createNewChat = () => {
     const emptyChat = chats.find((c) => c.title === "新しいチャット" && c.messages.length === 0)
@@ -309,7 +329,6 @@ function App() {
                         e.stopPropagation(); deleteChat(chat.id);
                       }}>×</button>
                     </div>
-
                   </div>
                 ))}
               </div>
@@ -349,12 +368,13 @@ function App() {
         )}
         <div className="header-icon" />
         <span className="header-title">MarketInsight AI</span>
+        <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#64748b' }}>{userName || userEmail}</span>
       </div>
       <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
           {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
             {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
-              <TypingText text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
+              <TypingText key={msg.content} text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
             ):(
               // <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
@@ -363,7 +383,15 @@ function App() {
         ))}
         {currentStep && (
           <div className='message message-step'>
-            <TypingText key={currentStep.type} text={`[${currentStep.type}] ${currentStep.content}`} speed={15} />
+            {/*
+              * key に content も含める理由:
+              * ステップは1箇所を上書きし続ける表示なので、key が変わらないと React が
+              * 同じ TypingText を使い回し、前のステップの文字が残ったまま続きが打たれてしまう。
+              * 現状のバックエンドは action → observation → action と交互に送るため type だけでも
+              * key は毎回変わるが、将来同じ type を連続して送るようになると壊れる。
+              * content を含めておけば送信順に依存せず安全。
+              */}
+            <TypingText key={`${currentStep.type}-${currentStep.content}`} text={`[${currentStep.type}] ${currentStep.content}`} speed={15} />
           </div>
         )}
       </div>
