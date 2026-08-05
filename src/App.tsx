@@ -172,12 +172,16 @@ function App() {
     )
     scrollToBottom()
 
+    const sendMessage = message
+    setMessage('')
+
     await fetch(`${API}/chats/${USER_ID}/${chatId}/messages`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ role: "user", content: message})
+      // body: JSON.stringify({ role: "user", content: message})
+      body: JSON.stringify({ role: "user", content: sendMessage }),
     })
-    if (message.slice(0, 20) !== "新しいチャット") {
+    if (sendMessage.slice(0, 20) !== "新しいチャット") {
       fetch(`${API}/chats/${USER_ID}/${chatId}/title`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -185,8 +189,7 @@ function App() {
       })
     }
     // setMessages((prev) => [...prev, userMsg])
-    const sendMessage = message
-    setMessage('')
+
     setIsStreaming(true)
 
     try {
@@ -194,7 +197,7 @@ function App() {
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: sendMessage }),
+        body: JSON.stringify({ message: sendMessage, chat_id: chatId }),
         signal: abortRef.current.signal
       })
       // const data = await res.json()
