@@ -107,6 +107,13 @@ function App() {
   }, [])
 
   const createNewChat = () => {
+    const emptyChat = chats.find((c) => c.title === "新しいチャット" && c.messages.length === 0)
+    if (emptyChat) {
+      setActiveChatId(emptyChat.id)
+      setCurrentStep(null)
+      return
+    }
+
     const newChat: Chat = {
       id: Date.now().toString(),
       title: "新しいチャット",
