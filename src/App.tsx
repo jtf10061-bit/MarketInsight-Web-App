@@ -60,10 +60,18 @@ function App() {
   const userEmail = accounts[0]?.username ?? ""
   const USER_ID = userEmail
 
+  const [models, setModels] = useState<{id: string; name: string; provider: string}[]>([])
+  const [selectedModel, setSelectedModel] = useState("aoai-gpt-4.1-mini")
+
+  useEffect(() => {
+    fetch(`${API}/models`)
+    .then((res) => res.json())
+    .then((data) => setModels(data))
+  }, [])
+
   const handleLogin = () => {
     instance.loginRedirect(loginRequest)
   }
-
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -224,7 +232,7 @@ function App() {
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: sendMessage, chat_id: chatId }),
+        body: JSON.stringify({ message: sendMessage, chat_id: chatId, model: selectedModel }),
         signal: abortRef.current.signal
       })
       // const data = await res.json()
@@ -405,6 +413,11 @@ function App() {
         {/*
         * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
         */}
+        <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>{m.name}</option>
+          ))}
+        </select>
         {isStreaming ? (
           <button onClick={() => abortRef.current?.abort()}>中止</button>
         ) : (
