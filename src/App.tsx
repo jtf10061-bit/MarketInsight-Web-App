@@ -73,6 +73,10 @@ function App() {
     instance.loginRedirect(loginRequest)
   }
 
+  const handleLogout = () => {
+    instance.logoutRedirect()
+  }
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if(!isResizing.current) return
@@ -377,6 +381,7 @@ function App() {
         <div className="header-icon" />
         <span className="header-title">MarketInsight AI</span>
         <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#64748b' }}>{userName || userEmail}</span>
+        <button onClick={handleLogout} className="logout-button">ログアウト</button>
       </div>
       <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
           {messages.map((msg, index) => (
