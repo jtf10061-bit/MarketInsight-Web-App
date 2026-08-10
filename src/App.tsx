@@ -236,7 +236,7 @@ function App() {
       const res = await fetch(`${API}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: sendMessage, chat_id: chatId, model: selectedModel }),
+        body: JSON.stringify({ message: sendMessage, chat_id: chatId, model: selectedModel, user_id: USER_ID }),
         signal: abortRef.current.signal
       })
       // const data = await res.json()
