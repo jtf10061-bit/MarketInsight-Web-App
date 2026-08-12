@@ -429,7 +429,8 @@ function App() {
         {/*
         * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
         */}
-        <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+        {/* <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}> */}
+        <select className="model-select" value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
           {models.map((m) => (
             <option key={m.id} value={m.id}>{m.name}</option>
           ))}
