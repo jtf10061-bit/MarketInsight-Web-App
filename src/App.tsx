@@ -275,21 +275,18 @@ function App() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ role: "assistant", content: step.content }),
             })
-          } else {
-            if (step.type === "error") {
-              setCurrentStep(null)
-              setChats((prev) =>
-                prev.map((c) => 
-                  c.id === chatId ? { ...c.messages: [
-                      ...c.messages, 
-                      { role: "assistant", content: step.content}
-                     ]
-                      
-                     } :c
-                  }
-                )
+          } else if (step.type === "error") {
+            setCurrentStep(null)
+            setChats((prev) =>
+              prev.map((c) =>
+                c.id === chatId
+                  ? { ...c, messages: [...c.messages, { role: "assistant", content: step.content }] }
+                  : c
               )
-            }
+            )
+            scrollToBottom()
+            // CosmosDBには保存しない
+          } else {
             setCurrentStep(step)
           }
         }
