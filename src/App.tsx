@@ -3,6 +3,7 @@ import './App.css'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import TypingText from './components/TypingText'
+import AppSidebar from './components/AppSidebar'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import { loginRequest } from './config/msalConfig'
 
@@ -62,12 +63,18 @@ function App() {
 
   const [models, setModels] = useState<{id: string; name: string; provider: string}[]>([])
   const [selectedModel, setSelectedModel] = useState("aoai-gpt-4.1-mini")
+  const [activeApp, setActiveApp] = useState("ai-chat")
 
   useEffect(() => {
     fetch(`${API}/models`)
     .then((res) => res.json())
     .then((data) => setModels(data))
   }, [])
+
+  const APP_PAGES: Record<string, {icon: string; name: string}> = {
+    "sharepoint-rag": { icon: "📄", name: "SharePoint RAG" },
+    "pdf-rag": { icon: "📎", name: "PDF RAG" },
+  }
 
   const handleLogin = () => {
     instance.loginRedirect(loginRequest)
@@ -80,7 +87,7 @@ function App() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if(!isResizing.current) return
-      const newWidth = Math.max(200, Math.min(500, e.clientX))
+      const newWidth = Math.max(200, Math.min(500, e.clientX - 72))
       setSidebarWidth(newWidth)
     }
     const handleMouseUp = () => {
@@ -323,124 +330,141 @@ function App() {
 
   return (
     <div className="app">
-      {sidebarOpen && (
-        <div className="sidebar" style={{ width: sidebarWidth }}>
-          <div className="sidebar-header">
-            <button className="new-chat-button" onClick={createNewChat}>
-              + 新しいチャット
-            </button>
-            <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
-              ✕
-            </button>
-          </div>
-          <div className="chat-list">
-            {favoriteChats.length > 0 && (
-              <div>
-                <div className="chat-list-date">お気に入り</div>
-                {favoriteChats.map((chat) => (
-                  <div
-                  key={chat.id}
-                  className={`chat-list-item ${chat.id === activeChatId ? 'active': ''}`}
-                  onClick={() => {setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null)}}
-                  >
-                    <span className="chat-list-title">{chat.title}</span>
-                    <div className='chat-list-actions'>
-                      <button className="chat-action-btn" onClick={(e) => {
-                        e.stopPropagation(); toggleFavorite(chat.id);
-                        }}>⭐︎</button>
-                      <button className='chat-action-btn' onClick={(e) => {
-                        e.stopPropagation(); deleteChat(chat.id);
-                      }}>×</button>
-                    </div>
+      <AppSidebar activeApp={activeApp} onSelectApp={setActiveApp} />
+      {activeApp === "ai-chat" ? (
+        <>
+          {sidebarOpen && (
+            <div className="sidebar" style={{ width: sidebarWidth }}>
+              <div className="sidebar-header">
+                <button className="new-chat-button" onClick={createNewChat}>
+                  + 新しいチャット
+                </button>
+                <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
+                  ✕
+                </button>
+              </div>
+              <div className="chat-list">
+                {favoriteChats.length > 0 && (
+                  <div>
+                    <div className="chat-list-date">お気に入り</div>
+                    {favoriteChats.map((chat) => (
+                      <div
+                      key={chat.id}
+                      className={`chat-list-item ${chat.id === activeChatId ? 'active': ''}`}
+                      onClick={() => {setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null)}}
+                      >
+                        <span className="chat-list-title">{chat.title}</span>
+                        <div className='chat-list-actions'>
+                          <button className="chat-action-btn" onClick={(e) => {
+                            e.stopPropagation(); toggleFavorite(chat.id);
+                            }}>⭐︎</button>
+                          <button className='chat-action-btn' onClick={(e) => {
+                            e.stopPropagation(); deleteChat(chat.id);
+                          }}>×</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {Object.entries(groupedChats).map(([dateLabel, chatGroup]) => (
+                  <div key={dateLabel}>
+                    <div className="chat-list-date">{dateLabel}</div>
+                    {chatGroup.map((chat) => (
+                      <div
+                        key={chat.id}
+                        className={`chat-list-item ${chat.id === activeChatId ? 'active' : ''}`}
+                        onClick={() => { setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null) }}
+                      >
+                        {/* {chat.title} */}
+                        <span className="chat-list-title">{chat.title}</span>
+                        <div className="chat-list-actions">
+                          <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); toggleFavorite(chat.id); }}>☆</button>
+                          <button className="chat-action-btn chat-delete-btn" onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>✕</button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
+              <div className='sidebar-resize-handle' onMouseDown={() => {
+                  isResizing.current = true
+                  document.body.style.cursor = "col-resize"
+                  document.body.style.userSelect = "none"
+                }}
+              />
+            </div>
+          )}
+          <div className={`header ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth + 72 } : {}}>
+            {!sidebarOpen && (
+              <button className='sidebar-open' onClick={() => setSidebarOpen(true)}>☰</button>
             )}
-            {Object.entries(groupedChats).map(([dateLabel, chatGroup]) => (
-              <div key={dateLabel}>
-                <div className="chat-list-date">{dateLabel}</div>
-                {chatGroup.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={`chat-list-item ${chat.id === activeChatId ? 'active' : ''}`}
-                    onClick={() => { setActiveChatId(chat.id); setCurrentStep(null); setLastAnswerId(null) }}
-                  >
-                    {/* {chat.title} */}
-                    <span className="chat-list-title">{chat.title}</span>
-                    <div className="chat-list-actions">
-                      <button className="chat-action-btn" onClick={(e) => { e.stopPropagation(); toggleFavorite(chat.id); }}>☆</button>
-                      <button className="chat-action-btn chat-delete-btn" onClick={(e) => { e.stopPropagation(); deleteChat(chat.id); }}>✕</button>
-                    </div>
-                  </div>
-                ))}
+            <div className="header-icon" />
+            <span className="header-title">MarketInsight AI</span>
+            <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#64748b' }}>{userName || userEmail}</span>
+            <button onClick={handleLogout} className="logout-button">ログアウト</button>
+          </div>
+          <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth + 72 } : {}}>
+              {messages.map((msg, index) => (
+              <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
+                {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
+                  <TypingText key={msg.content} text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
+                ):(
+                  // <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
+                )}
               </div>
             ))}
-          </div>
-          <div className='sidebar-resize-handle' onMouseDown={() => {
-              isResizing.current = true
-              document.body.style.cursor = "col-resize"
-              document.body.style.userSelect = "none"
-            }}
-          />
-        </div>
-      )}
-
-      <div className={`header ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
-        {!sidebarOpen && (
-          <button className='sidebar-open' onClick={() => setSidebarOpen(true)}>☰</button>
-        )}
-        <div className="header-icon" />
-        <span className="header-title">MarketInsight AI</span>
-        <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#64748b' }}>{userName || userEmail}</span>
-        <button onClick={handleLogout} className="logout-button">ログアウト</button>
-      </div>
-      <div className={`chat-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
-          {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role === 'user' ? 'message-user' : 'message-assistant'}`}>
-            {msg.role === "assistant" && index === messages.length -1 && lastAnswerId === activeChatId ? (
-              <TypingText key={msg.content} text={msg.content} speed={20} onDone={() => { setLastAnswerId(null); scrollToBottom() }}/>
-            ):(
-              // <ReactMarkdown components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ({href, children}) => <a href={href} target="_blank" rel="noopener noreferrer">{children}</a> }}>{msg.content}</ReactMarkdown>
+            {currentStep && (
+              <div className='message message-step'>
+                {/*
+                  * key に content も含める理由:
+                  * ステップは1箇所を上書きし続ける表示なので、key が変わらないと React が
+                  * 同じ TypingText を使い回し、前のステップの文字が残ったまま続きが打たれてしまう。
+                  * 現状のバックエンドは action → observation → action と交互に送るため type だけでも
+                  * key は毎回変わるが、将来同じ type を連続して送るようになると壊れる。
+                  * content を含めておけば送信順に依存せず安全。
+                  */}
+                <TypingText key={`${currentStep.type}-${currentStep.content}`} text={`[${currentStep.type}] ${currentStep.content}`} speed={15} />
+              </div>
             )}
           </div>
-        ))}
-        {currentStep && (
-          <div className='message message-step'>
+          <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth + 72 } : {}}>
+            <input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
+              placeholder="メッセージを入力..."
+            />
             {/*
-              * key に content も含める理由:
-              * ステップは1箇所を上書きし続ける表示なので、key が変わらないと React が
-              * 同じ TypingText を使い回し、前のステップの文字が残ったまま続きが打たれてしまう。
-              * 現状のバックエンドは action → observation → action と交互に送るため type だけでも
-              * key は毎回変わるが、将来同じ type を連続して送るようになると壊れる。
-              * content を含めておけば送信順に依存せず安全。
-              */}
-            <TypingText key={`${currentStep.type}-${currentStep.content}`} text={`[${currentStep.type}] ${currentStep.content}`} speed={15} />
+            * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
+            */}
+            {/* <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}> */}
+            <select className="model-select" value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+            {isStreaming ? (
+              <button onClick={() => abortRef.current?.abort()}>中止</button>
+            ) : (
+              <button onClick={handleSend}>送信</button>
+            )}
           </div>
-        )}
-      </div>
-      <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth } : {}}>
-        <input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
-          placeholder="メッセージを入力..."
-        />
-        {/*
-        * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」
-        */}
-        {/* <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}> */}
-        <select className="model-select" value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}>
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>{m.name}</option>
-          ))}
-        </select>
-        {isStreaming ? (
-          <button onClick={() => abortRef.current?.abort()}>中止</button>
-        ) : (
-          <button onClick={handleSend}>送信</button>
-        )}
-      </div>
+        </>
+      ) : (
+        <>
+        <div className="rag-placeholder">
+          <div className="rag-placeholder-content">
+            <span className="rag-placeholder-icon">
+              {APP_PAGES[activeApp]?.icon}
+            </span>
+            <h2>{APP_PAGES[activeApp]?.name}</h2>
+            <p>この機能は準備中です</p>
+          </div>
+        </div>
+        </>
+      )}
+
     </div>
   )
 }
