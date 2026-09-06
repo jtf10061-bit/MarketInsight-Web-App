@@ -429,11 +429,23 @@ function App() {
             )}
           </div>
           <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth + 72 } : {}}>
-            <input
+            {/* <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.nativeEvent.isComposing && handleSend()}
+              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && handleSend()}
               placeholder="メッセージを入力..."
+            /> */}
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
+              placeholder="メッセージを入力..."
+              rows={1}
             />
             {/*
             * !e.nativeEvent.isComposing: 押されたのが「Enter」キーで、かつ「変換中でない」

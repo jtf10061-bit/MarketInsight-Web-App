@@ -343,7 +343,7 @@
   transition: left 0.3s;
 }
 
-.input-area input {
+.input-area textarea {
   flex: 1;
   padding: 14px 20px;
   background-color: #f8f9fb;
@@ -354,6 +354,12 @@
   font-family: 'Inter', system-ui, sans-serif;
   outline: none;
   transition: all 0.2s;
+  resize: none;
+  min-height: 48px;
+  max-height: 150px;
+  overflow-y: auto;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
 }
 
 .input-area input::placeholder {
