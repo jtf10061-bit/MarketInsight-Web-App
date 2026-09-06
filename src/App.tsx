@@ -429,12 +429,6 @@ function App() {
             )}
           </div>
           <div className={`input-area ${sidebarOpen ? '' : 'full-width'}`} style={sidebarOpen ? { left: sidebarWidth + 72 } : {}}>
-            {/* <input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && handleSend()}
-              placeholder="メッセージを入力..."
-            /> */}
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
