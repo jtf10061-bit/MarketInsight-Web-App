@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import './DocumentRag.css'
 
 function DocumentRag() {
-  const [files, setFiles] = useState<{ filename: string; uplodaded_at: string }[]>([])
+  const [files, setFiles] = useState<{ filename: string; uploaded_at: string }[]>([])
   const [query, setQuery] = useState('')
   const [answer, setAnswer] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,7 +47,7 @@ function DocumentRag() {
         // 末尾に新しいファイル情報を追加した新しい配列をセットする
         setFiles((prev) => [
           ...prev,
-          { filename: data.filename, uplodaded_at: new Date().toISOString() },
+          { filename: data.filename, uploaded_at: new Date().toISOString() },
         ])
       }
     } catch (err) {
@@ -161,7 +161,7 @@ function DocumentRag() {
           <ul>
             {files.map((f, i) => (
               <li key={i}>
-                {f.filename}({f.uplodaded_at})
+                {f.filename} / ({f.uploaded_at})
                 <button onClick={() => handleDelete(f.filename)} className="delete-button">
                   削除
                 </button>

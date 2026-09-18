@@ -35,6 +35,7 @@
 }
 
 .app-sidebar-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -75,4 +76,46 @@
 
 .app-sidebar-item:hover .app-sidebar-label {
   color: #e2e8f0;
+}
+
+.app-sidebar-tooltip {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: #334155;
+  color: #f1f5f9;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+}
+
+/* 吹き出しのしっぽ（左向きの三角） */
+.app-sidebar-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: #334155;
+}
+
+.app-sidebar-item:hover .app-sidebar-tooltip,
+.app-sidebar-item:focus-visible .app-sidebar-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.25s;
 }
