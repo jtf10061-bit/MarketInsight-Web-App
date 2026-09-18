@@ -8,6 +8,15 @@ function DocumentRag() {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [history, setHistory] = useState<
+    {
+      id: string
+      query: string
+      answer: string
+      created_at: string
+    }[]
+  >([])
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -17,7 +26,20 @@ function DocumentRag() {
       .then((data) => setFiles(data))
       // 取得したデータをsetFilesでstateの値を更新する
       .catch(() => {})
+
+    // 履歴取得
+    const userId = 'test-user'
+    fetch(`http://localhost:9000/rag/history/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setHistory(data))
+      .catch(() => {})
   }, [])
+
+  // 履歴クリックで過去の回答を表示する関数
+  const handleHistoryClick = (item: { query: string; answer: string }) => {
+    setQuery(item.query)
+    setAnswer(item.answer)
+  }
 
   // PDFアップロード
   // async: 関数内でawait(非同期処理の完了待ち)を使うための宣言
@@ -90,8 +112,8 @@ function DocumentRag() {
         method: 'POST',
         // JSON形式で送ることをサーバーに伝える
         headers: { 'Content-Type': 'application/json' },
-        // {qeury: "AIの市場規模は？"}のようなJSONを送る
-        body: JSON.stringify({ query }),
+        // {query: "AIの市場規模は？"}のようなJSONを送る
+        body: JSON.stringify({ query, user_id: 'test-user' }),
       })
       // res.body: レスポンスのストリーム(データが少しずつ届く)
       // getRender(): ストリームを1チャンクずつ読むためのリーダーを取得
@@ -137,64 +159,89 @@ function DocumentRag() {
     } finally {
       // 失敗成功に関わらず検索中フラグをOFFにする
       setLoading(false)
+      // 履歴の再取得
+      fetch(`http://localhost:9000/rag/history/test-user`)
+        .then((res) => res.json())
+        .then((data) => setHistory(data))
+        .catch(() => {})
     }
   }
 
   return (
-    <div className="document-rag">
-      {/* ヘッダー */}
-      <div className="document-rag-header">
-        <h2>ドキュメント検索RAG</h2>
-        <p>PDFをアップロードして、内容について質問できます</p>
-      </div>
-      {/* アップロードボタン */}
-      <div className="document-rag-upload">
-        <label className="upload-button">
-          {uploading ? 'アップロード中...' : 'PDFをアップロード'}
-          <input type="file" accept=".pdf" onChange={handleUpload} ref={fileInputRef} hidden />
-        </label>
-      </div>
-      {/* ファイル一覧 */}
-      {files.length > 0 && (
-        <div className="document-rag-files">
-          <h3>アップロード済みファイル</h3>
-          <ul>
-            {files.map((f, i) => (
-              <li key={i}>
-                {f.filename} / ({f.uploaded_at})
-                <button onClick={() => handleDelete(f.filename)} className="delete-button">
-                  削除
-                </button>
-              </li>
-            ))}
-          </ul>
+    <div className="document-rag-container">
+      {/* サイドバー */}
+      <div className={`rag-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="rag-sidebar-header">
+          <h3>検索履歴</h3>
+          <button onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '◀' : '▶'}</button>
         </div>
-      )}
-      <ul>{/* ここにファイル名を並べる */}</ul>
-      {/* 質問入力 */}
-      <div className="document-rag-search">
-        <textarea
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="ドキュメントについて質問して"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              handleSearch()
-            }
-          }}
-        />
-        <button onClick={handleSearch} disabled={loading}>
-          {loading ? '検索中...' : '検索'}
-        </button>
+        <ul className="rag-history-list">
+          {history.map((h) => (
+            <li key={h.id} onClick={() => handleHistoryClick(h)}>
+              <span className="history-query">{h.query}</span>
+              <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-      {/* 回答表示 */}
-      {answer && (
-        <div className="document-rag-answer">
-          <h3>回答</h3>
-          <p>{answer}</p>
+      {/* ↑ サイドバーここまで ↑ */}
+
+      {/* ↓ メインエリアここから ↓ */}
+      <div className="document-rag">
+        {/* ヘッダー */}
+        <div className="document-rag-header">
+          <h2>ドキュメント検索RAG</h2>
+          <p>PDFをアップロードして、内容について質問できます</p>
         </div>
-      )}
+        {/* アップロードボタン */}
+        <div className="document-rag-upload">
+          <label className="upload-button">
+            {uploading ? 'アップロード中...' : 'PDFをアップロード'}
+            <input type="file" accept=".pdf" onChange={handleUpload} ref={fileInputRef} hidden />
+          </label>
+        </div>
+        {/* ファイル一覧 */}
+        {files.length > 0 && (
+          <div className="document-rag-files">
+            <h3>アップロード済みファイル</h3>
+            <ul>
+              {files.map((f, i) => (
+                <li key={i}>
+                  {f.filename}（{f.uploaded_at}）
+                  <button onClick={() => handleDelete(f.filename)} className="delete-button">
+                    削除
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {/* 質問入力 */}
+        <div className="document-rag-search">
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ドキュメントについて質問して"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSearch()
+              }
+            }}
+          />
+          <button onClick={handleSearch} disabled={loading}>
+            {loading ? '検索中...' : '検索'}
+          </button>
+        </div>
+        {/* 回答表示 */}
+        {answer && (
+          <div className="document-rag-answer">
+            <h3>回答</h3>
+            <p>{answer}</p>
+          </div>
+        )}
+      </div>
+      {/* ↑ メインエリアここまで ↑ */}
     </div>
   )
 }
