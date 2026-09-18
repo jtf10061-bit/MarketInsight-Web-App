@@ -6,6 +6,7 @@ import TypingText from './components/TypingText'
 import AppSidebar from './components/AppSidebar'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import { loginRequest } from './config/msalConfig'
+import DocumentRag  from './components/DocumentRag'
 
 type Chat = {
   id: string
@@ -71,9 +72,9 @@ function App() {
     .then((data) => setModels(data))
   }, [])
 
-  const APP_PAGES: Record<string, {icon: string; name: string}> = {
-    "sharepoint-rag": { icon: "📄", name: "SharePoint RAG" },
-    "pdf-rag": { icon: "📎", name: "PDF RAG" },
+  const APP_PAGES: Record<string, React.ReactNode> = {
+    "document-rag": <DocumentRag />,
+    "pdf-rag": <div className='rag-placeholder'>...</div>,
   }
 
   const handleLogin = () => {
@@ -458,17 +459,13 @@ function App() {
           </div>
         </>
       ) : (
-        <>
-        <div className="rag-placeholder">
-          <div className="rag-placeholder-content">
-            <span className="rag-placeholder-icon">
-              {APP_PAGES[activeApp]?.icon}
-            </span>
-            <h2>{APP_PAGES[activeApp]?.name}</h2>
-            <p>この機能は準備中です</p>
+        APP_PAGES[activeApp] ?? (
+          <div className="rag-placeholder">
+            <div className="rag-placeholder-content">
+              <p>この機能は準備中です</p>
+            </div>
           </div>
-        </div>
-        </>
+        )
       )}
 
     </div>
