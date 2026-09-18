@@ -495,3 +495,125 @@
   margin-right: 8px;
   cursor: pointer;
 }
+
+/* モード切り替え */
+.rag-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mode-button {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.mode-button:hover {
+  background-color: #f1f5f9;
+}
+
+.mode-button.active {
+  background-color: #0ea5e9;
+  color: #ffffff;
+  border-color: #0ea5e9;
+}
+
+/* 推論ラベル */
+.reasoning-label {
+  font-size: 12px;
+  color: #9333ea;
+  background-color: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin-bottom: 8px;
+}
+
+/* 推論モード回答表示 */
+.document-rag-answer .reasoning-body {
+  background-color: #faf5ff;
+  border-left: 4px solid #9333ea;
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 12px 0 16px;
+}
+
+.document-rag-answer .reasoning-body h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 20px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e9d5ff;
+}
+
+.document-rag-answer .reasoning-body h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 16px 0 6px;
+}
+
+.document-rag-answer .reasoning-body p {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+
+.document-rag-answer .reasoning-body ul,
+.document-rag-answer .reasoning-body ol {
+  padding-left: 20px;
+  margin: 0 0 12px;
+}
+
+.document-rag-answer .reasoning-body li {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+.document-rag-answer .reasoning-body strong {
+  font-weight: 700;
+  color: #7c3aed;
+  font-size: 16px;
+}
+
+.document-rag-answer .reasoning-body hr {
+  border: none;
+  border-top: 1px solid #e9d5ff;
+  margin: 16px 0;
+}
+
+.document-rag-answer .reasoning-body code {
+  background-color: #f5f3ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* 履歴のモードラベル */
+.history-mode-label {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.history-mode-label.search {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.history-mode-label.reasoning {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+}
