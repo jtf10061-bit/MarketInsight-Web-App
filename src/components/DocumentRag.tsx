@@ -25,6 +25,10 @@ function DocumentRag() {
       similarity: number
     }[]
   >([])
+  const [confidence, setConfidence] = useState<{
+    score: number
+    details: { similarity: number; coverage: number; context_richness: number }
+  } | null>(null)
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -152,6 +156,7 @@ function DocumentRag() {
               const data = JSON.parse(line.slice(6))
               if (data.type === 'evidence') {
                 setEvidence(data.content)
+                setConfidence(data.confidence)
               }
               // typeが"answer"のデータだけを回答として扱う
               if (data.type === 'answer') {
@@ -247,6 +252,35 @@ function DocumentRag() {
         {/* 回答表示 */}
         {answer && (
           <div className="document-rag-answer">
+            {/* 信頼度表示 */}
+            {confidence && (
+              <div className="rag-confidence">
+                <div className="confidence-header">
+                  <span>信頼度</span>
+                  <span className="confidence-score">{confidence.score} %</span>
+                </div>
+                <div className="confidence-bar">
+                  <div
+                    className="confidence-fill"
+                    style={{
+                      width: `${confidence.score}%`,
+                      backgroundColor:
+                        confidence.score >= 70
+                          ? '#22c55e'
+                          : confidence.score >= 40
+                            ? '#f59e0b'
+                            : '#ef4444',
+                    }}
+                  />
+                </div>
+                <div className="confidence details">
+                  <span>類似度 {confidence.details.similarity}%</span>
+                  <span>カバレッジ {confidence.details.coverage}%</span>
+                  <span>情報量 {confidence.details.context_richness}%</span>{' '}
+                </div>
+              </div>
+            )}
+
             <h3>回答</h3>
             <p>{answer}</p>
             {/* エビデンス表示 */}
