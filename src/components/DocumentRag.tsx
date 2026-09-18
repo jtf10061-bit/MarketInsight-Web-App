@@ -17,6 +17,14 @@ function DocumentRag() {
     }[]
   >([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [evidence, setEvidence] = useState<
+    {
+      filename: string
+      section: string
+      chunk_index: number
+      similarity: number
+    }[]
+  >([])
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -142,6 +150,9 @@ function DocumentRag() {
               // "data: "(6文字)を除いてJSON部分だけを取り出す
               // JSON.parse: JSON文字列をJSオブジェクトに変換
               const data = JSON.parse(line.slice(6))
+              if (data.type === 'evidence') {
+                setEvidence(data.content)
+              }
               // typeが"answer"のデータだけを回答として扱う
               if (data.type === 'answer') {
                 fullAnswer += data.content
@@ -238,6 +249,19 @@ function DocumentRag() {
           <div className="document-rag-answer">
             <h3>回答</h3>
             <p>{answer}</p>
+            {/* エビデンス表示 */}
+            <div className="rag-evidence">
+              <h4>参照元</h4>
+              <ul>
+                {evidence.map((e, i) => (
+                  <li key={i}>
+                    <span className="evidence-file">{e.filename}</span>
+                    <span className="evidence-section">{e.section}</span>
+                    <span className="evidence-similarity">類似度: {e.similarity}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         )}
       </div>
