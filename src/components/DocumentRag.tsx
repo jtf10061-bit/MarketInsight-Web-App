@@ -69,7 +69,7 @@ function DocumentRag() {
         { method: 'DELETE' },
       )
       const data = await res.json()
-      if (data.status === 'delete') {
+      if (data.status === 'deleted') {
         setHistory((prev) => prev.filter((h) => h.id !== historyId))
       }
     } catch (err) {
