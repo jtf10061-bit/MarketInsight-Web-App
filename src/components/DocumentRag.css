@@ -1,9 +1,5 @@
 .document-rag {
-  position: fixed;
-  top: 0;
-  left: 72px;
-  right: 0;
-  bottom: 0;
+  flex: 1;
   background-color: #f8f9fb;
   overflow-y: auto;
   padding: 32px 8%;
@@ -158,4 +154,83 @@
 
 .delete-button:hover {
   background-color: #b02a37;
+}
+
+/* document-rag全体を横並びにするコンテナ */
+.document-rag-container {
+  position: fixed;
+  top: 0;
+  left: 72px;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+
+/* サイドバー */
+.rag-sidebar {
+  width: 250px;
+  border-right: 1px solid #e2e8f0;
+  padding: 16px;
+  overflow-y: auto;
+  transition: width 0.2s;
+}
+
+.rag-sidebar.closed {
+  width: 40px;
+  padding: 16px 8px;
+}
+
+.rag-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.rag-sidebar-header h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.rag-sidebar.closed h3,
+.rag-sidebar.closed .rag-history-list {
+  display: none;
+}
+
+/* 履歴リスト */
+.rag-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rag-history-list li {
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.rag-history-list li:hover {
+  background: #f1f5f9;
+}
+
+.history-query {
+  display: block;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-date {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* メインエリア */
+.rag-main {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
 }
