@@ -1,0 +1,233 @@
+import { useState, useEffect, useRef } from 'react'
+import './DocumentRag.css'
+
+function DocumentRag() {
+  const [files, setFiles] = useState<{ filename: string; uplodaded_at: string }[]>([])
+  const [query, setQuery] = useState('')
+  const [answer, setAnswer] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // ファイル一覧を取得
+  useEffect(() => {
+    fetch('http://localhost:9000/rag/files')
+      .then((res) => res.json())
+      // fetchのレスポンスをJSONに変換する処理 = ボディ部分をJSONとしてパースし、JavaScriptオブジェクトとして変換するメソッド
+      .then((data) => setFiles(data))
+      // 取得したデータをsetFilesでstateの値を更新する
+      .catch(() => {})
+  }, [])
+
+  // PDFアップロード
+  // async: 関数内でawait(非同期処理の完了待ち)を使うための宣言
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // e.target.files: ユーザーが選択したファイルの配列
+    // ?.[0]: ファイルがあれば、最初の1つを取得
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    // FormData: ファイルをHTTPで送るための入れ物
+    const formData = new FormData()
+    // fileというキー名でファイルを追加(backendのUploadFileパラメータ名と一致させる)
+    formData.append('file', file)
+    try {
+      // サーバーにPOSTでファイルを送信
+      // FormDataを使う場合、Content-Typeは指定不要
+      const res = await fetch('http://localhost:9000/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      // レスポンスをJSONに変換
+      const data = await res.json()
+      // バックエンドが"uploaded"を返したら成功
+      if (data.status === 'uploaded') {
+        // prev: 現在のfiles配列
+        // ...prev: 既存のファイルを展開(スプレッド構文)
+        // 末尾に新しいファイル情報を追加した新しい配列をセットする
+        setFiles((prev) => [
+          ...prev,
+          { filename: data.filename, uplodaded_at: new Date().toISOString() },
+        ])
+      }
+    } catch (err) {
+      console.error('アップロードに失敗しました', err)
+    } finally {
+      // try/catchの結果に関わらず実行される
+      // アップロード中のフラグをOFF
+      setUploading(false)
+      // ファイル選択をリセット
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // 削除ボタンと削除処理
+  const handleDelete = async (filename: string) => {
+    try {
+      const res = await fetch(`http://localhost:9000/rag/files/${encodeURIComponent(filename)}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (data.status === 'deleted') {
+        setFiles((prev) => prev.filter((f) => f.filename !== filename))
+      }
+    } catch (err) {
+      console.log('削除に失敗しました', err)
+    }
+  }
+
+  // 質問検索(POST, SSEストリーミング)
+  const handleSearch = async () => {
+    // query.trim(): 前後の空白を誤挙した文字列を返す
+    if (!query.trim()) return
+    // 検索中フラグをONにする
+    setLoading(true)
+    // 前回の回答をクリアする
+    setAnswer('')
+    try {
+      // /rag/searchにPOSTで質問を送信
+      const res = await fetch('http://localhost:9000/rag/search', {
+        method: 'POST',
+        // JSON形式で送ることをサーバーに伝える
+        headers: { 'Content-Type': 'application/json' },
+        // {qeury: "AIの市場規模は？"}のようなJSONを送る
+        body: JSON.stringify({ query }),
+      })
+      // res.body: レスポンスのストリーム(データが少しずつ届く)
+      // getRender(): ストリームを1チャンクずつ読むためのリーダーを取得
+      const render = res.body?.getReader()
+      // TextDecoder: バイナリデータを文字列に変換するもの
+      const decoder = new TextDecoder()
+      // 回答文を蓄積する変数
+      let fullAnswer = ''
+      // readerが存在する限りループ
+      while (render) {
+        // read(): ストリームから次のチャンクを読む
+        // done; 全データを読み終えたらtrue
+        // value: 読み取ったデータ(バイナリ)
+        const { done, value } = await render.read()
+        // 全部読み終えたら、ループを抜ける
+        if (done) break
+        // バイナリ(コンピュータが理解できる「0」と「1」の2進数だけで表現されたデータ)を文字列に変換
+        const text = decoder.decode(value)
+        // SSE形式は改行区切りなので、行ごとに分割
+        // 例: "data: {\"type\":\"answer\",\"content\":\"AI市場は...\"}\n\n"
+        const lines = text.split('\n')
+        for (const line of lines) {
+          // SSE形式の行は、"data: "で始まる
+          if (line.startsWith('data: ')) {
+            try {
+              // "data: "(6文字)を除いてJSON部分だけを取り出す
+              // JSON.parse: JSON文字列をJSオブジェクトに変換
+              const data = JSON.parse(line.slice(6))
+              // typeが"answer"のデータだけを回答として扱う
+              if (data.type === 'answer') {
+                fullAnswer += data.content
+                setAnswer(fullAnswer)
+              }
+            } catch {
+              // チャンク境界で途切れた不完全なJSONは読み飛ばす
+            }
+          }
+        }
+      }
+    } catch {
+      // ネッt~ワークエラー
+      setAnswer('エラーが発生しました')
+    } finally {
+      // 失敗成功に関わらず検索中フラグをOFFにする
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="document-rag">
+      {/* ヘッダー */}
+      <div className="document-rag-header">
+        <h2>ドキュメント検索RAG</h2>
+        <p>PDFをアップロードして、内容について質問できます</p>
+      </div>
+      {/* アップロードボタン */}
+      <div className="document-rag-upload">
+        <label className="upload-button">
+          {uploading ? 'アップロード中...' : 'PDFをアップロード'}
+          <input type="file" accept=".pdf" onChange={handleUpload} ref={fileInputRef} hidden />
+        </label>
+      </div>
+      {/* ファイル一覧 */}
+      {files.length > 0 && (
+        <div className="document-rag-files">
+          <h3>アップロード済みファイル</h3>
+          <ul>
+            {files.map((f, i) => (
+              <li key={i}>
+                {f.filename}({f.uplodaded_at})
+                <button onClick={() => handleDelete(f.filename)} className="delete-button">
+                  削除
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <ul>{/* ここにファイル名を並べる */}</ul>
+      {/* 質問入力 */}
+      <div className="document-rag-search">
+        <textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="ドキュメントについて質問して"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              handleSearch()
+            }
+          }}
+        />
+        <button onClick={handleSearch} disabled={loading}>
+          {loading ? '検索中...' : '検索'}
+        </button>
+      </div>
+      {/* 回答表示 */}
+      {answer && (
+        <div className="document-rag-answer">
+          <h3>回答</h3>
+          <p>{answer}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default DocumentRag
+
+/*
+実装方針
+    Phase1: 画面に何が必要かを整理する
+        この画面はユーザーが何をするかを考える
+        1. PDFをアップロードする
+        2. アップロード済みのファイルを確認する
+        3. 質問を入力し、送信する
+        4. AIの回答を読む
+
+    Phase2: stateを決める
+        データ       型               理由
+        files       string[]         アップロード済みファイル一覧
+        query       string           質問の入力内容。ユーザーが変える
+        answer      string           AUの回答
+        loading     boolean          検索中かどうか、ボタンの無効化に使う
+        uploading   boolean          アップロード中かどうか
+
+    Phase3: JSXの骨組みだけを作る
+
+    Phase4: 簡単なAPIから接続する
+        1. ファイル一覧を取得(GET)
+        2. PDFファイルアップロード(POST, FrmData)
+        3. 質問検索(POST, SSEストリーミング)
+
+    Phase5: 細部を詰める
+        ・loadingやuploadingの状態管理を追加
+        ・エラーハンドリング
+        ・Shift + Enter対応
+        ・ボタン無効化
+*/
