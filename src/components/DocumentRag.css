@@ -415,3 +415,38 @@
 .history-delete:hover {
   color: #ef4444;
 }
+
+.history-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-top input[type='checkbox'] {
+  cursor: pointer;
+}
+
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bulk-delete-button {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bulk-delete-button:hover {
+  background-color: #dc2626;
+}
+
+.document-rag-files li input[type='checkbox'] {
+  margin-right: 8px;
+  cursor: pointer;
+}

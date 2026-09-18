@@ -35,6 +35,8 @@ function DocumentRag() {
     score: number
     details: { similarity: number; coverage: number; context_richness: number }
   } | null>(null)
+  const [selectedHistoryIds, setSelectedHistoryIds] = useState<string[]>([])
+  const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -207,6 +209,32 @@ function DocumentRag() {
     }
   }
 
+  // チェック切り替え関数を追加
+  const toggleHistorySelect = (id: string) => {
+    setSelectedHistoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+  }
+  const toggleFileSelect = (filename: string) => {
+    setSelectedFileNames((prev) =>
+      prev.includes(filename) ? prev.filter((x) => x !== filename) : [...prev, filename],
+    )
+  }
+
+  // 一括削除関数
+  const handleBulkDeleteHistory = async () => {
+    for (const id of selectedHistoryIds) {
+      await handleDeleteHistory('test-user', id)
+    }
+    setSelectedFileNames([])
+  }
+  const handleBulkDeleteFiles = async () => {
+    for (const filename of selectedFileNames) {
+      await handleDelete(filename)
+    }
+    setSelectedFileNames([])
+  }
+
   return (
     <div className="document-rag-container">
       {/* サイドバー */}
@@ -215,11 +243,24 @@ function DocumentRag() {
           <h3>検索履歴</h3>
           <button onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '◀' : '▶'}</button>
         </div>
+        {/* 一括削除ボタン — 選択中のみ表示 */}
+        {selectedHistoryIds.length > 0 && (
+          <button className="bulk-delete-button" onClick={handleBulkDeleteHistory}>
+            {selectedHistoryIds.length}件を削除
+          </button>
+        )}
         <ul className="rag-history-list">
           {history.map((h) => (
             <li key={h.id} onClick={() => handleHistoryClick(h)}>
-              <span className="history-query">{h.query}</span>
-              {/* <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span> */}
+              <div className="history-top">
+                <input
+                  type="checkbox"
+                  checked={selectedHistoryIds.includes(h.id)}
+                  onChange={() => toggleHistorySelect(h.id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <span className="history-query">{h.query}</span>
+              </div>
               <div className="history-bottom">
                 <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span>
                 <button
@@ -255,10 +296,22 @@ function DocumentRag() {
         {/* ファイル一覧 */}
         {files.length > 0 && (
           <div className="document-rag-files">
-            <h3>アップロード済みファイル</h3>
+            <div className="files-header">
+              <h3>アップロード済みファイル</h3>
+              {selectedFileNames.length > 0 && (
+                <button className="bulk-delete-button" onClick={handleBulkDeleteFiles}>
+                  {selectedFileNames.length}件を削除
+                </button>
+              )}
+            </div>
             <ul>
               {files.map((f, i) => (
                 <li key={i}>
+                  <input
+                    type="checkbox"
+                    checked={selectedFileNames.includes(f.filename)}
+                    onChange={() => toggleFileSelect(f.filename)}
+                  />
                   {f.filename}（{f.uploaded_at}）
                   <button onClick={() => handleDelete(f.filename)} className="delete-button">
                     削除
