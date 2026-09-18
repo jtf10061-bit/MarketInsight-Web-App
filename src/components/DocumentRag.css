@@ -234,3 +234,54 @@
   padding: 20px;
   overflow-y: auto;
 }
+
+.rag-evidence {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.rag-evidence h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0 0 8px;
+}
+
+.rag-evidence ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rag-evidence li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: #f8f9fb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.evidence-file {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.evidence-section {
+  color: #64748b;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evidence-similarity {
+  font-weight: 500;
+  color: #0ea5e9;
+  white-space: nowrap;
+}
