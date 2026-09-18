@@ -391,3 +391,23 @@
   border-radius: 4px;
   font-size: 13px;
 }
+
+/* 削除ボタン */
+.history-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-delete {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 4px;
+}
+
+.history-delete:hover {
+  color: #ef4444;
+}

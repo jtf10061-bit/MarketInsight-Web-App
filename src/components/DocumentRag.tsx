@@ -61,6 +61,22 @@ function DocumentRag() {
     setConfidence(item.confidence ?? null)
   }
 
+  //履歴の削除関数
+  const handleDeleteHistory = async (userId: string, historyId: string) => {
+    try {
+      const res = await fetch(
+        `http://localhost:9000/rag/history/${userId}/${encodeURIComponent(historyId)}`,
+        { method: 'DELETE' },
+      )
+      const data = await res.json()
+      if (data.status === 'delete') {
+        setHistory((prev) => prev.filter((h) => h.id !== historyId))
+      }
+    } catch (err) {
+      console.error('履歴の削除に失敗しました。', err)
+    }
+  }
+
   // PDFアップロード
   // async: 関数内でawait(非同期処理の完了待ち)を使うための宣言
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -203,7 +219,19 @@ function DocumentRag() {
           {history.map((h) => (
             <li key={h.id} onClick={() => handleHistoryClick(h)}>
               <span className="history-query">{h.query}</span>
-              <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span>
+              {/* <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span> */}
+              <div className="history-bottom">
+                <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span>
+                <button
+                  className="history-delete"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteHistory('test-user', h.id)
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             </li>
           ))}
         </ul>
