@@ -329,6 +329,14 @@
 }
 
 /* ReactMarkdown 回答表示用 */
+.document-rag-answer .markdown-body {
+  background-color: #f0f7ff;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin: 12px 0 16px;
+}
+
 .document-rag-answer .markdown-body h2 {
   font-size: 16px;
   font-weight: 600;
@@ -366,8 +374,9 @@
 }
 
 .document-rag-answer .markdown-body strong {
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: #0369a1;
+  font-size: 16px;
 }
 
 .document-rag-answer .markdown-body hr {

@@ -14,6 +14,11 @@ function DocumentRag() {
       id: string
       query: string
       answer: string
+      evidence?: { filename: string; section: string; chunk_index: number; similarity: number }[]
+      confidence?: {
+        score: number
+        details: { similarity: number; coverage: number; context_richness: number }
+      } | null
       created_at: string
     }[]
   >([])
@@ -49,9 +54,11 @@ function DocumentRag() {
   }, [])
 
   // 履歴クリックで過去の回答を表示する関数
-  const handleHistoryClick = (item: { query: string; answer: string }) => {
+  const handleHistoryClick = (item: (typeof history)[number]) => {
     setQuery(item.query)
     setAnswer(item.answer)
+    setEvidence(item.evidence ?? [])
+    setConfidence(item.confidence ?? null)
   }
 
   // PDFアップロード
