@@ -231,6 +231,15 @@ function DocumentRag() {
     }
   }
 
+  // クリア
+  const handleNew = () => {
+    setQuery('')
+    setAnswer('')
+    setEvidence([])
+    setConfidence(null)
+    setMode('search')
+  }
+
   // チェック切り替え関数を追加
   const toggleHistorySelect = (id: string) => {
     setSelectedHistoryIds((prev) =>
@@ -359,6 +368,9 @@ function DocumentRag() {
         )}
         {/* モード切り替え */}
         <div className="rag-mode-toggle">
+          <button className="new-search-button" onClick={handleNew}>
+            + 新規チャット
+          </button>
           <button
             className={`mode-button ${mode === 'search' ? 'active' : ''}`}
             onClick={() => {
