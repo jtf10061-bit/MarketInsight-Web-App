@@ -42,6 +42,7 @@ function DocumentRag() {
         score: number
         details: { similarity: number; coverage: number; context_richness: number }
       } | null
+      mode?: 'search' | 'reasoning'
       created_at: string
     }[]
   >([])
@@ -53,6 +54,8 @@ function DocumentRag() {
   } | null>(null)
   const [selectedHistoryIds, setSelectedHistoryIds] = useState<string[]>([])
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
+  const [mode, setMode] = useState<'search' | 'reasoning'>('search')
+  const [responseMode, setResponseMode] = useState<'search' | 'reasoning'>('search')
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -77,6 +80,8 @@ function DocumentRag() {
     setAnswer(item.answer)
     setEvidence(item.evidence ?? [])
     setConfidence(item.confidence ?? null)
+    setResponseMode(item.mode ?? 'search')
+    setMode(item.mode ?? 'search')
   }
 
   //履歴の削除関数
@@ -167,7 +172,7 @@ function DocumentRag() {
         // JSON形式で送ることをサーバーに伝える
         headers: { 'Content-Type': 'application/json' },
         // {query: "AIの市場規模は？"}のようなJSONを送る
-        body: JSON.stringify({ query, user_id: 'test-user' }),
+        body: JSON.stringify({ query, user_id: 'test-user', mode }),
       })
       // res.body: レスポンスのストリーム(データが少しずつ届く)
       // getRender(): ストリームを1チャンクずつ読むためのリーダーを取得
@@ -199,6 +204,7 @@ function DocumentRag() {
               if (data.type === 'evidence') {
                 setEvidence(data.content)
                 setConfidence(data.confidence)
+                setResponseMode(data.mode || 'search')
               }
               // typeが"answer"のデータだけを回答として扱う
               if (data.type === 'answer') {
@@ -275,10 +281,24 @@ function DocumentRag() {
                   onChange={() => toggleHistorySelect(h.id)}
                   onClick={(e) => e.stopPropagation()}
                 />
+                <span
+                  className={`history-mode-label ${h.mode === 'reasoning' ? 'reasoning' : 'search'}`}
+                >
+                  {h.mode === 'reasoning' ? '推論' : '検索'}
+                </span>
                 <span className="history-query">{h.query}</span>
               </div>
               <div className="history-bottom">
-                <span className="history-date">{new Date(h.created_at).toLocaleDateString()}</span>
+                <span className="history-date">
+                  {new Date(h.created_at).toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  })}
+                </span>
                 <button
                   className="history-delete"
                   onClick={(e) => {
@@ -337,6 +357,25 @@ function DocumentRag() {
             </ul>
           </div>
         )}
+        {/* モード切り替え */}
+        <div className="rag-mode-toggle">
+          <button
+            className={`mode-button ${mode === 'search' ? 'active' : ''}`}
+            onClick={() => {
+              setMode('search')
+            }}
+          >
+            検索モード
+          </button>
+          <button
+            className={`mode-button ${mode === 'reasoning' ? 'active' : ''}`}
+            onClick={() => {
+              setMode('reasoning')
+            }}
+          >
+            推論モード
+          </button>
+        </div>
         {/* 質問入力 */}
         <div className="document-rag-search">
           <textarea
@@ -385,8 +424,13 @@ function DocumentRag() {
                 </div>
               </div>
             )}
-            <h3>回答</h3>
-            <div className="markdown-body">
+            <h3>{responseMode === 'reasoning' ? '推論結果' : '回答'}</h3>
+            {responseMode === 'reasoning' && (
+              <div className="reasoning-label">
+                この回答はドキュメント内の情報を元にAIが推論した結果です
+              </div>
+            )}
+            <div className={responseMode === 'reasoning' ? 'reasoning-body' : 'markdown-body'}>
               <ReactMarkdown>{answer}</ReactMarkdown>
             </div>
             {/* エビデンス表示 */}
