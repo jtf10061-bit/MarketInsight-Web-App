@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
 import './DocumentRag.css'
 
 function DocumentRag() {
@@ -273,16 +274,17 @@ function DocumentRag() {
                     }}
                   />
                 </div>
-                <div className="confidence details">
+                <div className="confidence-details">
                   <span>類似度 {confidence.details.similarity}%</span>
                   <span>カバレッジ {confidence.details.coverage}%</span>
                   <span>情報量 {confidence.details.context_richness}%</span>{' '}
                 </div>
               </div>
             )}
-
             <h3>回答</h3>
-            <p>{answer}</p>
+            <div className="markdown-body">
+              <ReactMarkdown>{answer}</ReactMarkdown>
+            </div>
             {/* エビデンス表示 */}
             <div className="rag-evidence">
               <h4>参照元</h4>
