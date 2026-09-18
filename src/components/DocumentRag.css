@@ -285,3 +285,45 @@
   color: #0ea5e9;
   white-space: nowrap;
 }
+
+.rag-confidence {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fb;
+  border-radius: 8px;
+}
+
+.confidence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.confidence-score {
+  font-size: 18px;
+}
+
+.confidence-bar {
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.confidence-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.confidence-details {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #94a3b8;
+}
