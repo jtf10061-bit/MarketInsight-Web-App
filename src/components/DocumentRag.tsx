@@ -2,6 +2,29 @@ import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './DocumentRag.css'
 
+type Evidence = {
+  filename: string
+  section: string
+  chunk_index: number
+  similarity: number
+  content?: string
+  // 以下は再インデックス後のチャンクにしか入っていないため optional
+  page?: number | null
+  page_end?: number | null
+  line_start?: number | null
+  line_end?: number | null
+}
+
+// 参照箇所を「p.12 · 4〜18行目」のような文字列にする
+// 行番号はページ内での位置なので、ページをまたぐ場合は両方のページ番号を出す
+function formatLocation(e: Evidence): string {
+  if (e.page == null) return ''
+  if (e.page_end != null && e.page_end !== e.page) {
+    return `p.${e.page} ${e.line_start}行目 〜 p.${e.page_end} ${e.line_end}行目`
+  }
+  return `p.${e.page} · ${e.line_start}〜${e.line_end}行目`
+}
+
 function DocumentRag() {
   const [files, setFiles] = useState<{ filename: string; uploaded_at: string }[]>([])
   const [query, setQuery] = useState('')
@@ -14,7 +37,7 @@ function DocumentRag() {
       id: string
       query: string
       answer: string
-      evidence?: { filename: string; section: string; chunk_index: number; similarity: number }[]
+      evidence?: Evidence[]
       confidence?: {
         score: number
         details: { similarity: number; coverage: number; context_richness: number }
@@ -23,14 +46,7 @@ function DocumentRag() {
     }[]
   >([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [evidence, setEvidence] = useState<
-    {
-      filename: string
-      section: string
-      chunk_index: number
-      similarity: number
-    }[]
-  >([])
+  const [evidence, setEvidence] = useState<Evidence[]>([])
   const [confidence, setConfidence] = useState<{
     score: number
     details: { similarity: number; coverage: number; context_richness: number }
@@ -377,13 +393,22 @@ function DocumentRag() {
             <div className="rag-evidence">
               <h4>参照元</h4>
               <ul>
-                {evidence.map((e, i) => (
-                  <li key={i}>
-                    <span className="evidence-file">{e.filename}</span>
-                    <span className="evidence-section">{e.section}</span>
-                    <span className="evidence-similarity">類似度: {e.similarity}</span>
-                  </li>
-                ))}
+                {evidence.map((e) => {
+                  const location = formatLocation(e)
+                  return (
+                    <li key={`${e.filename}-${e.chunk_index}`}>
+                      <details>
+                        <summary>
+                          <span className="evidence-file">{e.filename}</span>
+                          {e.section && <span className="evidence-section">{e.section}</span>}
+                          {location && <span className="evidence-locator">{location}</span>}
+                          <span className="evidence-similarity">類似度: {e.similarity}</span>
+                        </summary>
+                        {e.content && <div className="evidence-content">{e.content}</div>}
+                      </details>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           </div>
