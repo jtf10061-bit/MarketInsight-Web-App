@@ -262,13 +262,24 @@
 }
 
 .rag-evidence li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
   padding: 6px 10px;
   background-color: #f8f9fb;
   border-radius: 6px;
   font-size: 12px;
+}
+
+.rag-evidence summary {
+  cursor: pointer;
+  list-style: none;
+}
+.rag-evidence summary::-webkit-details-marker {
+  display: none;
+}
+
+/* span をブロックにして1行ずつ積む（<br /> の代わり） */
+.rag-evidence summary span {
+  display: block;
 }
 
 .evidence-file {
@@ -276,18 +287,52 @@
   color: #1e293b;
 }
 
+/* 開閉の目印 */
+.evidence-file::before {
+  content: '\25B6';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  color: #94a3b8;
+  transition: transform 0.15s;
+}
+.rag-evidence details[open] .evidence-file::before {
+  transform: rotate(90deg);
+}
+
 .evidence-section {
   color: #64748b;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* 参照箇所(ページ・行) */
+.evidence-locator {
+  color: #94a3b8;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 
 .evidence-similarity {
   font-weight: 500;
   color: #0ea5e9;
+  margin-top: 2px;
   white-space: nowrap;
+}
+
+/* 展開部分の本文 */
+.evidence-content {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  color: #334155;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .rag-confidence {
