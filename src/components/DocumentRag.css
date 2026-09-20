@@ -739,3 +739,37 @@
   padding: 0;
   margin: 0;
 }
+
+/* モードの説明 */
+.mode-button-wrapper {
+  position: relative;
+}
+
+.mode-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.mode-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
+}
+
+.mode-button-wrapper:hover .mode-tooltip {
+  display: block;
+}

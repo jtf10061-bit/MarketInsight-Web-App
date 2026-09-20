@@ -444,22 +444,26 @@ function DocumentRag() {
             <button className="new-search-button" onClick={handleNew}>
               + 新規チャット
             </button>
-            <button
-              className={`mode-button ${mode === 'search' ? 'active' : ''}`}
-              onClick={() => {
-                setMode('search')
-              }}
-            >
-              検索モード
-            </button>
-            <button
-              className={`mode-button ${mode === 'reasoning' ? 'active' : ''}`}
-              onClick={() => {
-                setMode('reasoning')
-              }}
-            >
-              推論モード
-            </button>
+            <div className="mode-button-wrapper">
+              <button
+                className={`mode-button ${mode === 'search' ? 'active' : ''}`}
+                onClick={() => setMode('search')}
+              >
+                検索モード
+              </button>
+              <span className="mode-tooltip">ドキュメント内から該当する情報を直接検索します</span>
+            </div>
+            <div className="mode-button-wrapper">
+              <button
+                className={`mode-button ${mode === 'reasoning' ? 'active' : ''}`}
+                onClick={() => setMode('reasoning')}
+              >
+                推論モード
+              </button>
+              <span className="mode-tooltip">
+                ドキュメントの内容をもとにAIが推論・分析した結果を返します
+              </span>
+            </div>
           </div>
           {/* 質問入力 */}
           <div className="document-rag-search">
