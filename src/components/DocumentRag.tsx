@@ -334,8 +334,14 @@ function DocumentRag() {
         {/* アップロードボタン */}
         <div className="document-rag-upload">
           <label className="upload-button">
-            {uploading ? 'アップロード中...' : 'PDFをアップロード'}
-            <input type="file" accept=".pdf" onChange={handleUpload} ref={fileInputRef} hidden />
+            {uploading ? 'アップロード中...' : 'ファイルをアップロード'}
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt,.xlsx,.pptx"
+              onChange={handleUpload}
+              ref={fileInputRef}
+              hidden
+            />
           </label>
         </div>
         {/* ファイル一覧 */}
