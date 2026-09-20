@@ -467,6 +467,16 @@
   align-items: center;
 }
 
+.files-header h3 input[type='checkbox'] {
+  margin-left: 10px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.files-header h3 input[type='checkbox']:hover {
+  cursor: pointer;
+}
+
 .bulk-delete-button {
   background-color: #ef4444;
   color: white;

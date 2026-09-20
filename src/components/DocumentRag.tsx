@@ -410,7 +410,20 @@ function DocumentRag() {
           {files.length > 0 && (
             <div className="document-rag-files">
               <div className="files-header">
-                <h3>アップロード済みファイル</h3>
+                <h3>
+                  <input
+                    type="checkbox"
+                    checked={selectedFileNames.length === files.length && files.length > 0}
+                    onChange={() => {
+                      if (selectedFileNames.length === files.length) {
+                        setSelectedFileNames([])
+                      } else {
+                        setSelectedFileNames(files.map((f) => f.filename))
+                      }
+                    }}
+                  />
+                  アップロード済みファイル
+                </h3>
                 {selectedFileNames.length > 0 && (
                   <button className="bulk-delete-button" onClick={handleBulkDeleteFiles}>
                     {selectedFileNames.length}件を削除
