@@ -21,7 +21,9 @@ function SidebarLayout({
       <div className={`sidebar-layout-side ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-layout-header">
           <h3>{sidebarTitle}</h3>
-          <button onClick={onToggle}>{sidebarOpen ? '◀' : '▶'}</button>
+          <button className="sidebar-toggle-button" onClick={onToggle}>
+            {sidebarOpen ? '‹' : '›'}
+          </button>
         </div>
         {sidebarOpen && sidebar}
       </div>

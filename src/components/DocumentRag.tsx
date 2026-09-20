@@ -26,6 +26,31 @@ function formatLocation(e: Evidence): string {
   return `p.${e.page} · ${e.line_start}〜${e.line_end}行目`
 }
 
+// 日付をグループ化する関数
+function groupHistoryByDate<T extends { created_at: string }>(items: T[]) {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterday = new Date(today.getTime() - 86400000)
+  const weekAgo = new Date(today.getTime() - 7 * 86400000)
+  const monthAgo = new Date(today.getTime() - 30 * 86400000)
+
+  const groups: { label: string; items: T[] }[] = [
+    { label: '今日', items: [] },
+    { label: '昨日', items: [] },
+    { label: '1週間以内', items: [] },
+    { label: '30日以内', items: [] },
+  ]
+
+  for (const item of items) {
+    const d = new Date(item.created_at)
+    if (d >= today) groups[0].items.push(item)
+    else if (d >= yesterday) groups[1].items.push(item)
+    else if (d >= weekAgo) groups[2].items.push(item)
+    else if (d >= monthAgo) groups[3].items.push(item)
+  }
+  return groups.filter((g) => g.items.length > 0)
+}
+
 function DocumentRag() {
   const [files, setFiles] = useState<{ filename: string; uploaded_at: string }[]>([])
   const [query, setQuery] = useState('')
@@ -307,47 +332,54 @@ function DocumentRag() {
             )}
             {/* 履歴リスト */}
             <ul className="rag-history-list">
-              {history
-                .filter((h) => historyFilter === 'all' || h.mode === historyFilter)
-                .map((h) => (
-                  <li key={h.id} onClick={() => handleHistoryClick(h)}>
-                    <div className="history-top">
-                      <input
-                        type="checkbox"
-                        checked={selectedHistoryIds.includes(h.id)}
-                        onChange={() => toggleHistorySelect(h.id)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <span
-                        className={`history-mode-label ${h.mode === 'reasoning' ? 'reasoning' : 'search'}`}
-                      >
-                        {h.mode === 'reasoning' ? '推論' : '検索'}
-                      </span>
-                      <span className="history-query">{h.query}</span>
-                    </div>
-                    <div className="history-bottom">
-                      <span className="history-date">
-                        {new Date(h.created_at).toLocaleString('ja-JP', {
-                          year: 'numeric',
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
-                      </span>
-                      <button
-                        className="history-delete"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDeleteHistory('test-user', h.id)
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </li>
-                ))}
+              {groupHistoryByDate(
+                history.filter((h) => historyFilter === 'all' || h.mode === historyFilter),
+              ).map((group) => (
+                <li key={group.label} className="history-group">
+                  <div className="history-group-label">{group.label}</div>
+                  <ul>
+                    {group.items.map((h) => (
+                      <li key={h.id} onClick={() => handleHistoryClick(h)}>
+                        <div className="history-top">
+                          <input
+                            type="checkbox"
+                            checked={selectedHistoryIds.includes(h.id)}
+                            onChange={() => toggleHistorySelect(h.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span
+                            className={`history-mode-label ${h.mode === 'reasoning' ? 'reasoning' : 'search'}`}
+                          >
+                            {h.mode === 'reasoning' ? '推論' : '検索'}
+                          </span>
+                          <span className="history-query">{h.query}</span>
+                        </div>
+                        <div className="history-bottom">
+                          <span className="history-date">
+                            {new Date(h.created_at).toLocaleString('ja-JP', {
+                              year: 'numeric',
+                              month: '2-digit',
+                              day: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit',
+                            })}
+                          </span>
+                          <button
+                            className="history-delete"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteHistory('test-user', h.id)
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
             </ul>
           </>
         }
