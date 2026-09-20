@@ -30,6 +30,9 @@
 }
 
 .minutes-upload {
+  display: flex;
+  gap: 12px;
+  align-items: center;
   margin-bottom: 24px;
 }
 
@@ -180,4 +183,53 @@
   border: none;
   border-top: 1px solid #e2e8f0;
   margin: 16px 0;
+}
+
+.record-button {
+  display: inline-block;
+  padding: 10px 24px;
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.record-button:hover {
+  background: #fef2f2;
+}
+
+.record-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.minutes-history-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.bulk-delete-button {
+  display: block;
+  width: calc(100% - 16px);
+  margin: 0 8px 8px;
+  padding: 6px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bulk-delete-button:hover {
+  background: #fee2e2;
 }
