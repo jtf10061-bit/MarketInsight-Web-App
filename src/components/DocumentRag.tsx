@@ -56,6 +56,7 @@ function DocumentRag() {
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
   const [mode, setMode] = useState<'search' | 'reasoning'>('search')
   const [responseMode, setResponseMode] = useState<'search' | 'reasoning'>('search')
+  const [showFilesPages, setShowFilesPages] = useState(false)
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -356,7 +357,7 @@ function DocumentRag() {
               )}
             </div>
             <ul>
-              {files.map((f, i) => (
+              {files.slice(0, 3).map((f, i) => (
                 <li key={i}>
                   <input
                     type="checkbox"
@@ -370,6 +371,11 @@ function DocumentRag() {
                 </li>
               ))}
             </ul>
+            {files.length > 3 && (
+              <button className="show-all-files-button" onClick={() => setShowFilesPages(true)}>
+                全てのファイルを表示 ({files.length} 件)
+              </button>
+            )}
           </div>
         )}
         {/* モード切り替え */}
@@ -477,6 +483,37 @@ function DocumentRag() {
         )}
       </div>
       {/* ↑ メインエリアここまで ↑ */}
+      {/* ファイル一覧モーダル */}
+      {showFilesPages && (
+        <div className="files-modal-overlay" onClick={() => setShowFilesPages(false)}>
+          <div className="file-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="files-modal-header">
+              <h3>アップロード済みファイル ({files.length} 件)</h3>
+              <button onClick={() => setShowFilesPages(false)}>x</button>
+            </div>
+            <ul className="files-modal-list">
+              {files.map((f, i) => (
+                <li key={i}>
+                  <input
+                    type="checkbox"
+                    checked={selectedFileNames.includes(f.filename)}
+                    onChange={() => toggleFileSelect(f.filename)}
+                  />
+                  {f.filename} ({f.uploaded_at})
+                  <button onClick={() => handleDelete(f.filename)} className="delete-button">
+                    削除
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {selectedFileNames.length > 0 && (
+              <button className="bulk-delete-button" onClick={handleBulkDeleteFiles}>
+                {selectedFileNames.length}件を削除
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
