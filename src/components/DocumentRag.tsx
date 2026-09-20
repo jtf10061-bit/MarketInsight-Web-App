@@ -567,7 +567,20 @@ function DocumentRag() {
         <div className="files-modal-overlay" onClick={() => setShowFilesPages(false)}>
           <div className="file-modal" onClick={(e) => e.stopPropagation()}>
             <div className="files-modal-header">
-              <h3>アップロード済みファイル ({files.length} 件)</h3>
+              <h3>
+                <input
+                  type="checkbox"
+                  checked={selectedFileNames.length === files.length && files.length > 0}
+                  onChange={() => {
+                    if (selectedFileNames.length === files.length) {
+                      setSelectedFileNames([])
+                    } else {
+                      setSelectedFileNames(files.map((f) => f.filename))
+                    }
+                  }}
+                />
+                アップロード済みファイル ({files.length} 件)
+              </h3>
               <button onClick={() => setShowFilesPages(false)}>x</button>
             </div>
             <ul className="files-modal-list">

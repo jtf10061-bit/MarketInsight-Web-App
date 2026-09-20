@@ -783,3 +783,12 @@
 .mode-button-wrapper:hover .mode-tooltip {
   display: block;
 }
+
+.files-modal-header h3 input[type='checkbox'] {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.files-modal-header h3 input[type='checkbox']:hover {
+  cursor: pointer;
+}
