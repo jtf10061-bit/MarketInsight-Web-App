@@ -7,6 +7,7 @@ import AppSidebar from './components/AppSidebar'
 import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import { loginRequest } from './config/msalConfig'
 import DocumentRag from './components/DocumentRag'
+import MeetingMinutes from './components/MeetingMinutes'
 
 type Chat = {
   id: string
@@ -79,6 +80,7 @@ function App() {
 
   const APP_PAGES: Record<string, React.ReactNode> = {
     'document-rag': <DocumentRag />,
+    'meeting-minutes': <MeetingMinutes />,
     'pdf-rag': <div className="rag-placeholder">...</div>,
   }
 
