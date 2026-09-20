@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import './DocumentRag.css'
+import SidebarLayout from './SidebarLayout'
 
 type Evidence = {
   filename: string
@@ -57,6 +58,7 @@ function DocumentRag() {
   const [mode, setMode] = useState<'search' | 'reasoning'>('search')
   const [responseMode, setResponseMode] = useState<'search' | 'reasoning'>('search')
   const [showFilesPages, setShowFilesPages] = useState(false)
+  const [historyFilter, setHistoryFilter] = useState<'all' | 'search' | 'reasoning'>('all')
 
   // ファイル一覧を取得
   useEffect(() => {
@@ -268,220 +270,248 @@ function DocumentRag() {
   }
 
   return (
-    <div className="document-rag-container">
+    <>
       {/* サイドバー */}
-      <div className={`rag-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        <div className="rag-sidebar-header">
-          <h3>検索履歴</h3>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)}>{sidebarOpen ? '◀' : '▶'}</button>
-        </div>
-        {/* 一括削除ボタン — 選択中のみ表示 */}
-        {selectedHistoryIds.length > 0 && (
-          <button className="bulk-delete-button" onClick={handleBulkDeleteHistory}>
-            {selectedHistoryIds.length}件を削除
-          </button>
-        )}
-        <ul className="rag-history-list">
-          {history.map((h) => (
-            <li key={h.id} onClick={() => handleHistoryClick(h)}>
-              <div className="history-top">
-                <input
-                  type="checkbox"
-                  checked={selectedHistoryIds.includes(h.id)}
-                  onChange={() => toggleHistorySelect(h.id)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span
-                  className={`history-mode-label ${h.mode === 'reasoning' ? 'reasoning' : 'search'}`}
-                >
-                  {h.mode === 'reasoning' ? '推論' : '検索'}
-                </span>
-                <span className="history-query">{h.query}</span>
-              </div>
-              <div className="history-bottom">
-                <span className="history-date">
-                  {new Date(h.created_at).toLocaleString('ja-JP', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                  })}
-                </span>
-                <button
-                  className="history-delete"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteHistory('test-user', h.id)
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-      {/* ↑ サイドバーここまで ↑ */}
+      <SidebarLayout
+        sidebarTitle="検索履歴"
+        sidebarOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        sidebar={
+          <>
+            {/* フィルタボタン */}
+            <div className="rag-history-filter">
+              <button
+                className={`filter-button ${historyFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setHistoryFilter('all')}
+              >
+                すべて
+              </button>
+              <button
+                className={`filter-button ${historyFilter === 'search' ? 'active' : ''}`}
+                onClick={() => setHistoryFilter('search')}
+              >
+                検索
+              </button>
+              <button
+                className={`filter-button ${historyFilter === 'reasoning' ? 'active' : ''}`}
+                onClick={() => setHistoryFilter('reasoning')}
+              >
+                推論
+              </button>
+            </div>
+            {/* 一括削除ボタン */}
+            {selectedHistoryIds.length > 0 && (
+              <button className="bulk-delete-button" onClick={handleBulkDeleteHistory}>
+                {selectedHistoryIds.length}件を削除
+              </button>
+            )}
+            {/* 履歴リスト */}
+            <ul className="rag-history-list">
+              {history
+                .filter((h) => historyFilter === 'all' || h.mode === historyFilter)
+                .map((h) => (
+                  <li key={h.id} onClick={() => handleHistoryClick(h)}>
+                    <div className="history-top">
+                      <input
+                        type="checkbox"
+                        checked={selectedHistoryIds.includes(h.id)}
+                        onChange={() => toggleHistorySelect(h.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <span
+                        className={`history-mode-label ${h.mode === 'reasoning' ? 'reasoning' : 'search'}`}
+                      >
+                        {h.mode === 'reasoning' ? '推論' : '検索'}
+                      </span>
+                      <span className="history-query">{h.query}</span>
+                    </div>
+                    <div className="history-bottom">
+                      <span className="history-date">
+                        {new Date(h.created_at).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </span>
+                      <button
+                        className="history-delete"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteHistory('test-user', h.id)
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </li>
+                ))}
+            </ul>
+          </>
+        }
+      >
+        {/* ↑ サイドバーここまで ↑ */}
 
-      {/* ↓ メインエリアここから ↓ */}
-      <div className="document-rag">
-        {/* ヘッダー */}
-        <div className="document-rag-header">
-          <h2>ドキュメント検索RAG</h2>
-          <p>PDFをアップロードして、内容について質問できます</p>
-        </div>
-        {/* アップロードボタン */}
-        <div className="document-rag-upload">
-          <label className="upload-button">
-            {uploading ? 'アップロード中...' : 'ファイルをアップロード'}
-            <input
-              type="file"
-              accept=".pdf,.docx,.txt,.xlsx,.pptx"
-              onChange={handleUpload}
-              ref={fileInputRef}
-              hidden
-            />
-          </label>
-        </div>
-        {/* ファイル一覧 */}
-        {files.length > 0 && (
-          <div className="document-rag-files">
-            <div className="files-header">
-              <h3>アップロード済みファイル</h3>
-              {selectedFileNames.length > 0 && (
-                <button className="bulk-delete-button" onClick={handleBulkDeleteFiles}>
-                  {selectedFileNames.length}件を削除
+        {/* ↓ メインエリアここから ↓ */}
+        <div className="document-rag">
+          {/* ヘッダー */}
+          <div className="document-rag-header">
+            <h2>ドキュメント検索RAG</h2>
+            <p>PDFをアップロードして、内容について質問できます</p>
+          </div>
+          {/* アップロードボタン */}
+          <div className="document-rag-upload">
+            <label className="upload-button">
+              {uploading ? 'アップロード中...' : 'ファイルをアップロード'}
+              <input
+                type="file"
+                accept=".pdf,.docx,.txt,.xlsx,.pptx"
+                onChange={handleUpload}
+                ref={fileInputRef}
+                hidden
+              />
+            </label>
+          </div>
+          {/* ファイル一覧 */}
+          {files.length > 0 && (
+            <div className="document-rag-files">
+              <div className="files-header">
+                <h3>アップロード済みファイル</h3>
+                {selectedFileNames.length > 0 && (
+                  <button className="bulk-delete-button" onClick={handleBulkDeleteFiles}>
+                    {selectedFileNames.length}件を削除
+                  </button>
+                )}
+              </div>
+              <ul>
+                {files.slice(0, 3).map((f, i) => (
+                  <li key={i}>
+                    <input
+                      type="checkbox"
+                      checked={selectedFileNames.includes(f.filename)}
+                      onChange={() => toggleFileSelect(f.filename)}
+                    />
+                    {f.filename}（{f.uploaded_at}）
+                    <button onClick={() => handleDelete(f.filename)} className="delete-button">
+                      削除
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {files.length > 3 && (
+                <button className="show-all-files-button" onClick={() => setShowFilesPages(true)}>
+                  全てのファイルを表示 ({files.length} 件)
                 </button>
               )}
             </div>
-            <ul>
-              {files.slice(0, 3).map((f, i) => (
-                <li key={i}>
-                  <input
-                    type="checkbox"
-                    checked={selectedFileNames.includes(f.filename)}
-                    onChange={() => toggleFileSelect(f.filename)}
-                  />
-                  {f.filename}（{f.uploaded_at}）
-                  <button onClick={() => handleDelete(f.filename)} className="delete-button">
-                    削除
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {files.length > 3 && (
-              <button className="show-all-files-button" onClick={() => setShowFilesPages(true)}>
-                全てのファイルを表示 ({files.length} 件)
-              </button>
-            )}
+          )}
+          {/* モード切り替え */}
+          <div className="rag-mode-toggle">
+            <button className="new-search-button" onClick={handleNew}>
+              + 新規チャット
+            </button>
+            <button
+              className={`mode-button ${mode === 'search' ? 'active' : ''}`}
+              onClick={() => {
+                setMode('search')
+              }}
+            >
+              検索モード
+            </button>
+            <button
+              className={`mode-button ${mode === 'reasoning' ? 'active' : ''}`}
+              onClick={() => {
+                setMode('reasoning')
+              }}
+            >
+              推論モード
+            </button>
           </div>
-        )}
-        {/* モード切り替え */}
-        <div className="rag-mode-toggle">
-          <button className="new-search-button" onClick={handleNew}>
-            + 新規チャット
-          </button>
-          <button
-            className={`mode-button ${mode === 'search' ? 'active' : ''}`}
-            onClick={() => {
-              setMode('search')
-            }}
-          >
-            検索モード
-          </button>
-          <button
-            className={`mode-button ${mode === 'reasoning' ? 'active' : ''}`}
-            onClick={() => {
-              setMode('reasoning')
-            }}
-          >
-            推論モード
-          </button>
-        </div>
-        {/* 質問入力 */}
-        <div className="document-rag-search">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="ドキュメントについて質問して"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                handleSearch()
-              }
-            }}
-          />
-          <button onClick={handleSearch} disabled={loading}>
-            {loading ? '検索中...' : '検索'}
-          </button>
-        </div>
-        {/* 回答表示 */}
-        {answer && (
-          <div className="document-rag-answer">
-            {/* 信頼度表示 */}
-            {confidence && (
-              <div className="rag-confidence">
-                <div className="confidence-header">
-                  <span>信頼度</span>
-                  <span className="confidence-score">{confidence.score} %</span>
-                </div>
-                <div className="confidence-bar">
-                  <div
-                    className="confidence-fill"
-                    style={{
-                      width: `${confidence.score}%`,
-                      backgroundColor:
-                        confidence.score >= 70
-                          ? '#22c55e'
-                          : confidence.score >= 40
-                            ? '#f59e0b'
-                            : '#ef4444',
-                    }}
-                  />
-                </div>
-                <div className="confidence-details">
-                  <span>類似度 {confidence.details.similarity}%</span>
-                  <span>カバレッジ {confidence.details.coverage}%</span>
-                  <span>情報量 {confidence.details.context_richness}%</span>{' '}
-                </div>
-              </div>
-            )}
-            <h3>{responseMode === 'reasoning' ? '推論結果' : '回答'}</h3>
-            {responseMode === 'reasoning' && (
-              <div className="reasoning-label">
-                この回答はドキュメント内の情報を元にAIが推論した結果です
-              </div>
-            )}
-            <div className={responseMode === 'reasoning' ? 'reasoning-body' : 'markdown-body'}>
-              <ReactMarkdown>{answer}</ReactMarkdown>
-            </div>
-            {/* エビデンス表示 */}
-            <div className="rag-evidence">
-              <h4>参照元</h4>
-              <ul>
-                {evidence.map((e) => {
-                  const location = formatLocation(e)
-                  return (
-                    <li key={`${e.filename}-${e.chunk_index}`}>
-                      <details>
-                        <summary>
-                          <span className="evidence-file">{e.filename}</span>
-                          {e.section && <span className="evidence-section">{e.section}</span>}
-                          {location && <span className="evidence-locator">{location}</span>}
-                          <span className="evidence-similarity">類似度: {e.similarity}</span>
-                        </summary>
-                        {e.content && <div className="evidence-content">{e.content}</div>}
-                      </details>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
+          {/* 質問入力 */}
+          <div className="document-rag-search">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ドキュメントについて質問して"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSearch()
+                }
+              }}
+            />
+            <button onClick={handleSearch} disabled={loading}>
+              {loading ? '検索中...' : '検索'}
+            </button>
           </div>
-        )}
-      </div>
+          {/* 回答表示 */}
+          {answer && (
+            <div className="document-rag-answer">
+              {/* 信頼度表示 */}
+              {confidence && (
+                <div className="rag-confidence">
+                  <div className="confidence-header">
+                    <span>信頼度</span>
+                    <span className="confidence-score">{confidence.score} %</span>
+                  </div>
+                  <div className="confidence-bar">
+                    <div
+                      className="confidence-fill"
+                      style={{
+                        width: `${confidence.score}%`,
+                        backgroundColor:
+                          confidence.score >= 70
+                            ? '#22c55e'
+                            : confidence.score >= 40
+                              ? '#f59e0b'
+                              : '#ef4444',
+                      }}
+                    />
+                  </div>
+                  <div className="confidence-details">
+                    <span>類似度 {confidence.details.similarity}%</span>
+                    <span>カバレッジ {confidence.details.coverage}%</span>
+                    <span>情報量 {confidence.details.context_richness}%</span>{' '}
+                  </div>
+                </div>
+              )}
+              <h3>{responseMode === 'reasoning' ? '推論結果' : '回答'}</h3>
+              {responseMode === 'reasoning' && (
+                <div className="reasoning-label">
+                  この回答はドキュメント内の情報を元にAIが推論した結果です
+                </div>
+              )}
+              <div className={responseMode === 'reasoning' ? 'reasoning-body' : 'markdown-body'}>
+                <ReactMarkdown>{answer}</ReactMarkdown>
+              </div>
+              {/* エビデンス表示 */}
+              <div className="rag-evidence">
+                <h4>参照元</h4>
+                <ul>
+                  {evidence.map((e) => {
+                    const location = formatLocation(e)
+                    return (
+                      <li key={`${e.filename}-${e.chunk_index}`}>
+                        <details>
+                          <summary>
+                            <span className="evidence-file">{e.filename}</span>
+                            {e.section && <span className="evidence-section">{e.section}</span>}
+                            {location && <span className="evidence-locator">{location}</span>}
+                            <span className="evidence-similarity">類似度: {e.similarity}</span>
+                          </summary>
+                          {e.content && <div className="evidence-content">{e.content}</div>}
+                        </details>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      </SidebarLayout>
       {/* ↑ メインエリアここまで ↑ */}
       {/* ファイル一覧モーダル */}
       {showFilesPages && (
@@ -514,7 +544,7 @@ function DocumentRag() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 

@@ -158,16 +158,6 @@
   background-color: #b02a37;
 }
 
-/* document-rag全体を横並びにするコンテナ */
-.document-rag-container {
-  position: fixed;
-  top: 0;
-  left: 72px;
-  right: 0;
-  bottom: 0;
-  display: flex;
-}
-
 /* サイドバー */
 .rag-sidebar {
   width: 250px;
