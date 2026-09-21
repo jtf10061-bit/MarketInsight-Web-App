@@ -187,3 +187,32 @@
   background-color: #f1f5f9;
   color: #1e293b;
 }
+
+/* 一括削除ボタン */
+.bulk-delete-button {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.bulk-delete-button:hover {
+  background: #dc2626;
+}
+
+/* 履歴チェックボックス */
+.history-group ul li {
+  display: flex;
+  align-items: center;
+}
+
+.history-group ul li input[type='checkbox'] {
+  margin-right: 8px;
+  cursor: pointer;
+  accent-color: #0ea5e9;
+}
