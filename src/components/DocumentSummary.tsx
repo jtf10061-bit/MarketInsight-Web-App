@@ -16,13 +16,8 @@ function DocumentSummary() {
   const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [summary, setSummary] = useState('')
-
   const [history, setHistory] = useState<History[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  //   const [minutes, setMinutes] = useState('')
-  //   const [transcript, setTranscript] = useState('')
-
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const handleHistoryClick = async (id: string) => {
