@@ -8,6 +8,7 @@ import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 import { loginRequest } from './config/msalConfig'
 import DocumentRag from './components/DocumentRag'
 import MeetingMinutes from './components/MeetingMinutes'
+import DocumentSummary from './components/DocumentSummary'
 
 type Chat = {
   id: string
@@ -81,7 +82,8 @@ function App() {
   const APP_PAGES: Record<string, React.ReactNode> = {
     'document-rag': <DocumentRag />,
     'meeting-minutes': <MeetingMinutes />,
-    'pdf-rag': <div className="rag-placeholder">...</div>,
+    'document-summary': <DocumentSummary />,
+    // 'pdf-rag': <div className="rag-placeholder"></div>,
   }
 
   const handleLogin = () => {
