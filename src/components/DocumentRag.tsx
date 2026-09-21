@@ -80,7 +80,7 @@ function DocumentRag() {
 
   // 履歴クリックで過去の回答を表示する関数
   const handleHistoryClick = (item: (typeof history)[number]) => {
-    setQuery(item.query)
+    setQuery(item.query ?? '')
     setAnswer(item.answer)
     setEvidence(item.evidence ?? [])
     setConfidence(item.confidence ?? null)
