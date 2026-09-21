@@ -11,7 +11,6 @@ type History = {
 }
 
 function MeetingMinutes() {
-  //   const [files, setFiles] = useState<File | null>(null)
   const [history, setHistory] = useState<History[]>([])
   const [uploading, setUploading] = useState(false)
   const [minutes, setMinutes] = useState('')
@@ -20,6 +19,32 @@ function MeetingMinutes() {
   const [recording, setRecording] = useState(false)
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [selectedIds, setSelecteIds] = useState<string[]>([])
+
+  // 共通のポーリング関数
+  const pollJob = (jobId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:9000/minutes/status/${jobId}`)
+        const data = await res.json()
+
+        if (data.status === 'completed') {
+          clearInterval(interval)
+          const resultRes = await fetch(`http://localhost:9000/minutes/result/${jobId}`)
+          const result = await resultRes.json()
+          setMinutes(result.minutes)
+          setTranscript(result.transcript)
+          setUploading(false)
+          fetchHistory()
+        } else if (data.status === 'failed') {
+          clearInterval(interval)
+          setMinutes('エラーが発生しました: ' + data.error)
+          setUploading(false)
+        }
+      } catch {
+        // ネットワークエラーは無視してポーリング継続
+      }
+    }, 3000)
+  }
 
   // アップロード+議事録生成
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,11 +64,9 @@ function MeetingMinutes() {
         body: formData,
       })
       const data = await res.json()
-      setMinutes(data.minutes)
-      setTranscript(data.transcript)
+      pollJob(data.job_id)
     } catch {
       setMinutes('エラーが発生しました')
-    } finally {
       setUploading(false)
     }
   }
@@ -94,12 +117,9 @@ function MeetingMinutes() {
           body: formData,
         })
         const data = await res.json()
-        setMinutes(data.minutes)
-        setTranscript(data.transcript)
-        fetchHistory()
+        pollJob(data.job_id)
       } catch {
         setMinutes('エラーが発生しました')
-      } finally {
         setUploading(false)
       }
     }
@@ -205,15 +225,15 @@ function MeetingMinutes() {
               </div>
             </div>
           )}
-        </div>
 
-        {/* 文字起こし表示 */}
-        {transcript && (
-          <details className="minutes-transcript">
-            <summary>文字起こし全文表示</summary>
-            <p>{transcript}</p>
-          </details>
-        )}
+          {/* 文字起こし表示 */}
+          {transcript && (
+            <details className="minutes-transcript">
+              <summary>文字起こし全文表示</summary>
+              <p>{transcript}</p>
+            </details>
+          )}
+        </div>
       </SidebarLayout>
     </>
   )
