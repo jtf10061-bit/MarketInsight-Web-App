@@ -19,6 +19,8 @@ function DocumentSummary() {
   const [history, setHistory] = useState<History[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  //   Set: JSの組み込みデータ構造で、重複しない値の集合体 = 同じIDが重複しないようにしている
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const handleHistoryClick = async (id: string) => {
     const res = await fetch(`http://localhost:9000/rag/summary/${id}`)
@@ -118,6 +120,38 @@ function DocumentSummary() {
     }
   }
 
+  // 要約履歴削除機能
+  const handleDeleteSummary = async (id: string) => {
+    await fetch(`http://localhost:9000/rag/summary/${id}?user_id=test-user`, {
+      method: 'DELETE',
+    })
+    fetchHistory()
+  }
+
+  // チェックボックスのトグル
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  // 一括削除
+  const handleBulkDelete = async () => {
+    for (const id of selectedIds) {
+      await fetch(`http://localhost:9000/rag/summary/${id}?user_id=test-user`, {
+        method: 'DELETE',
+      })
+    }
+    setSelectedIds(new Set())
+    fetchHistory()
+  }
+
   useEffect(() => {
     fetchFiles()
     fetchHistory()
@@ -131,13 +165,56 @@ function DocumentSummary() {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         sidebar={
           <>
+            {selectedIds.size > 0 && (
+              <button className="bulk-delete-button" onClick={handleBulkDelete}>
+                選択した {selectedIds.size} 件を削除
+              </button>
+            )}
             {groupHistoryByDate(history).map((group) => (
               <li key={group.label} className="history-group">
                 <div className="history-group-label">{group.label}</div>
                 <ul>
                   {group.items.map((h) => (
+                    // <li key={h.id} onClick={() => handleHistoryClick(h.id)}>
+                    //   <span className="history-query">{h.filename}</span>
+                    //   <span className="history-date">
+                    //     {new Date(h.created_at).toLocaleString('ja-JP', {
+                    //       year: 'numeric',
+                    //       month: '2-digit',
+                    //       day: '2-digit',
+                    //       hour: '2-digit',
+                    //       minute: '2-digit',
+                    //     })}
+                    //   </span>
+                    // </li>
                     <li key={h.id} onClick={() => handleHistoryClick(h.id)}>
-                      ...
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(h.id)}
+                        onChange={() => toggleSelect(h.id)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <span className="history-query">{h.filename}</span>
+                      <div className="history-bottom">
+                        <span className="history-date">
+                          {new Date(h.created_at).toLocaleString('ja-JP', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        <button
+                          className="history-delete"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteSummary(h.id)
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
