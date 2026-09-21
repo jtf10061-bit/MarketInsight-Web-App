@@ -198,14 +198,14 @@
   overflow-y: auto;
 }
 
-.rag-history-list li {
+.rag-history-list .history-group ul li {
   padding: 8px;
   border-radius: 6px;
   cursor: pointer;
   margin-bottom: 4px;
 }
 
-.rag-history-list li:hover {
+.rag-history-list .history-group ul li:hover {
   background: #f1f5f9;
 }
 
