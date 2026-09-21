@@ -20,22 +20,30 @@ function MeetingMinutes() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [selectedIds, setSelecteIds] = useState<string[]>([])
 
-  // 共通のポーリング関数
+  // 共通のポーリング関数(非同期処理の進捗状態を定期的に問い合わせる)
   const pollJob = (jobId: string) => {
+    // setInterval を使って、指定した時間間隔で繰り返し実行されるタイマー処理を開始する
     const interval = setInterval(async () => {
       try {
+        // await res.json(): レスポンスをJSONオブジェクトとして解析・取得する
         const res = await fetch(`http://localhost:9000/minutes/status/${jobId}`)
         const data = await res.json()
 
         if (data.status === 'completed') {
+          // 処理が完了したため、setInterval による定期実行（タイマー）を停止する
           clearInterval(interval)
+          // 完了したジョブの最終成果物（議事録や文字起こしデータ）を取得するため、結果取得用APIにリクエストを送り、JSONデータを取得する
           const resultRes = await fetch(`http://localhost:9000/minutes/result/${jobId}`)
           const result = await resultRes.json()
+          // 取得した議事録テキストと文字起こしテキストをReactのState（画面の状態）にセットする
           setMinutes(result.minutes)
           setTranscript(result.transcript)
+          // ローディング表示やアップロード中フラグをオフ
           setUploading(false)
+          // 履歴一覧を再取得して画面を更新する
           fetchHistory()
         } else if (data.status === 'failed') {
+          // 失敗確定のため、ポーリング（タイマー）を停止
           clearInterval(interval)
           setMinutes('エラーが発生しました: ' + data.error)
           setUploading(false)
