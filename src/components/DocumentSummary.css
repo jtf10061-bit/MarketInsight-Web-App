@@ -1,0 +1,189 @@
+/* メインコンテナ */
+.document-summary {
+  flex: 1;
+  background-color: #f8f9fb;
+  overflow-y: auto;
+  padding: 32px 8%;
+}
+
+/* ヘッダー */
+.document-summary-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px;
+}
+
+.document-summary-header p {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0 0 24px;
+}
+
+/* アップロード */
+.document-summary-upload {
+  margin-bottom: 24px;
+}
+
+/* ファイル一覧 */
+.document-summary-files {
+  margin-bottom: 24px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.document-summary-files h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0 0 12px;
+}
+
+.document-summary-files ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.document-summary-files li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #f8f9fb;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.document-summary-files li:hover {
+  background-color: #e2e8f0;
+}
+
+/* ラジオボタン選択中の行 */
+.document-summary-files li.selected {
+  background-color: #e0f2fe;
+  border: 1px solid #0ea5e9;
+}
+
+.document-summary-files input[type='radio'] {
+  cursor: pointer;
+}
+
+/* 要約ボタン */
+.summarize-button {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background-color: #0ea5e9;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.summarize-button:hover {
+  background-color: #0284c7;
+}
+
+.summarize-button:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* 要約結果 */
+.document-summary-result {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.document-summary-result h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin: 0 0 12px;
+}
+
+/* Markdown表示用 */
+.document-summary-result h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 20px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.document-summary-result p {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.7;
+  margin: 0 0 12px;
+}
+
+.document-summary-result ul,
+.document-summary-result ol {
+  padding-left: 20px;
+  margin: 0 0 12px;
+}
+
+.document-summary-result li {
+  font-size: 14px;
+  color: #1e293b;
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+.document-summary-result strong {
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.document-summary-result hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 16px 0;
+}
+
+/* コピーボタン */
+.document-summary-result .copy-button {
+  margin-top: 12px;
+  padding: 6px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.document-summary-result .copy-button:hover {
+  background-color: #f1f5f9;
+}
+
+.copy-button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.copy-button:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
