@@ -1,0 +1,4 @@
+# 言語統計の補正: リポジトリ同梱の報告書は成果物ではないため除外する
+# （GitHub Linguist / lowlighter-metrics の集計対象から外れる）
+# 注: .gitattributes はバックスラッシュによる空白エスケープに非対応。必ず引用符で囲む。
+"AI 駆動開発フロー.html" linguist-documentation
