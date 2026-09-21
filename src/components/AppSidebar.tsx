@@ -11,6 +11,7 @@ const APPS: AppItem[] = [
   { id: 'ai-chat', name: 'AIチャット', icon: '💬' },
   { id: 'document-rag', name: 'ドキュメント検索RAG', icon: '📄' },
   { id: 'meeting-minutes', name: '議事録作成', icon: '📄' },
+  { id: 'document-summary', name: '要約生成', icon: '📄' },
   { id: 'pdf-rag', name: 'PDF書き起こしRAG', icon: '💬' },
 ]
 
