@@ -7,22 +7,39 @@ type QAMessage = {
   role: 'user' | 'assistant'
   content: string
   sources?: string[]
+  timestamp: string
+}
+
+type QASession = {
+  id: string
+  messages: QAMessage[]
+  createdAt: string
 }
 
 function DocumentQA() {
-  const [messages, setMessages] = useState<QAMessage[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [documents, setDocuments] = useState<{ filename: string; uploaded_at: string }[]>([])
-  const [histories, setHistories] = useState<{ question: string; timestamp: string }[]>([])
+
+  const [sessions, setSessions] = useState<QASession[]>(() => [
+    { id: '1', messages: [], createdAt: new Date().toLocaleString() },
+  ])
+  const [currentSessionId, setCurrentSessionId] = useState('1')
+  const [messages, setMessages] = useState<QAMessage[]>([])
 
   const askQuestion = async () => {
     if (!input.trim() || loading) return
 
     const question = input
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: question }])
+    const userMsg: QAMessage = {
+      role: 'user',
+      content: question,
+      timestamp: new Date().toLocaleTimeString(),
+    }
+    const withUser = [...messages, userMsg]
+    updateMessages(withUser)
     setLoading(true)
 
     try {
@@ -32,15 +49,30 @@ function DocumentQA() {
         body: JSON.stringify({ question, user_id: 'test-user' }),
       })
       const data = await res.json()
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: data.answer, sources: data.sources },
-      ])
+      const assistantMsg: QAMessage = {
+        role: 'assistant',
+        content: data.answer,
+        sources: data.sources,
+        timestamp: new Date().toLocaleTimeString(),
+      }
+      updateMessages([...withUser, assistantMsg])
     } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'エラーが発生しました。' }])
+      const errorMsg: QAMessage = {
+        role: 'assistant',
+        content: 'エラーが発生しました。',
+        timestamp: new Date().toLocaleTimeString(),
+      }
+      updateMessages([...withUser, errorMsg])
     }
+
     setLoading(false)
-    setHistories((prev) => [{ question, timestamp: new Date().toLocaleTimeString() }, ...prev])
+  }
+
+  const updateMessages = (newMessages: QAMessage[]) => {
+    setMessages(newMessages)
+    setSessions((prev) =>
+      prev.map((s) => (s.id === currentSessionId ? { ...s, messages: newMessages } : s)),
+    )
   }
 
   const fetchDocuments = () => {
@@ -50,6 +82,34 @@ function DocumentQA() {
         if (Array.isArray(data)) setDocuments(data)
       })
       .catch(() => {})
+  }
+
+  // 新規チャット開始
+  const startNewChat = () => {
+    if (messages.length > 0 && currentSessionId) {
+      setSessions((prev) => prev.map((s) => (s.id === currentSessionId ? { ...s, messages } : s)))
+    }
+    const newId = Date.now().toString()
+    const newSession: QASession = {
+      id: newId,
+      messages: [],
+      createdAt: new Date().toLocaleString(),
+    }
+    setSessions((prev) => [newSession, ...prev])
+    setCurrentSessionId(newId)
+    setMessages([])
+  }
+
+  // 履歴を選択して過去のやり取りを表示
+  const selectSession = (sessionId: string) => {
+    if (currentSessionId && messages.length > 0) {
+      setSessions((prev) => prev.map((s) => (s.id === currentSessionId ? { ...s, messages } : s)))
+    }
+    const session = sessions.find((s) => s.id === sessionId)
+    if (session) {
+      setCurrentSessionId(session.id)
+      setMessages(session.messages)
+    }
   }
 
   useEffect(() => {
@@ -64,9 +124,30 @@ function DocumentQA() {
       sidebar={
         <>
           <p className="qa-sidebar-desc">登録済みのドキュメントに対して自然言語で質問できます。</p>
+          <button className="qa-clear-button" onClick={startNewChat}>
+            + 新規チャット
+          </button>
           <button className="qa-clear-button" onClick={() => setMessages([])}>
             会話をクリア
           </button>
+          <div className="qa-doc-list">
+            <h4>チャット履歴</h4>
+            {sessions.length === 0 && <p className="qa-no-docs">なし</p>}
+            {sessions.map((s) => (
+              <div
+                key={s.id}
+                className={`qa-history-item ${s.id === currentSessionId ? 'active' : ''}`}
+                onClick={() => selectSession(s.id)}
+              >
+                <span className="qa-history-question">
+                  {s.messages.length > 0 ? s.messages[0].content : '新規チャット'}
+                </span>
+                <span className="qa-history-time">{s.createdAt}</span>
+              </div>
+            ))}
+          </div>
+          <hr />
+          <h3>参照</h3>
           <div className="qa-doc-list">
             <h4>ドキュメント</h4>
             {documents.filter((d) => !d.filename.startsWith('minutes__')).length === 0 && (
@@ -92,16 +173,6 @@ function DocumentQA() {
                   {doc.uploaded_at ? doc.uploaded_at.slice(0, 10) : '日付不明'}
                 </div>
               ))}
-          </div>
-          <div className="qa-doc-list">
-            <h4>質問履歴</h4>
-            {histories.length === 0 && <p className="qa-no-docs">なし</p>}
-            {histories.map((h, i) => (
-              <div key={i} className="qa-history-item" onClick={() => setInput(h.question)}>
-                <span className="qa-history-question">{h.question}</span>
-                <span className="qa-history-time">{h.timestamp}</span>
-              </div>
-            ))}
           </div>
         </>
       }
