@@ -31,6 +31,10 @@
   font-size: 14px;
 }
 
+.qa-clear-button + .qa-clear-button {
+  margin-top: 8px;
+}
+
 .qa-clear-button:hover {
   background: #cbd5e1;
 }
@@ -39,6 +43,11 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 80px);
+}
+
+.qa-history-item.active {
+  background: #dbeafe;
+  border-left: 3px solid #3b82f6;
 }
 
 .qa-messages {
@@ -144,6 +153,13 @@
 
 .qa-doc-list {
   margin-top: 16px;
+}
+
+.qa-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+  margin: 12px 0 4px 0;
 }
 
 .qa-doc-list h4 {
