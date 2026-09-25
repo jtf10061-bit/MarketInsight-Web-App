@@ -10,6 +10,7 @@ import DocumentRag from './components/DocumentRag'
 import MeetingMinutes from './components/MeetingMinutes'
 import DocumentSummary from './components/DocumentSummary'
 import TaskBoard from './components/TaskBoard'
+import DocumentQA from './components/DocumentQA'
 
 type Chat = {
   id: string
@@ -85,6 +86,7 @@ function App() {
     'meeting-minutes': <MeetingMinutes />,
     'document-summary': <DocumentSummary />,
     taskboard: <TaskBoard />,
+    'document-qa': <DocumentQA />,
     // 'pdf-rag': <div className="rag-placeholder"></div>,
   }
 
