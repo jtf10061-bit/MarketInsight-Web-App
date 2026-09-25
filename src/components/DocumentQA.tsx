@@ -45,9 +45,7 @@ function DocumentQA() {
     fetch('http://localhost:9000/rag/files')
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setDocuments(data.filter((d) => !d.filename.startsWith('minutes__')))
-        }
+        if (Array.isArray(data)) setDocuments(data)
       })
       .catch(() => {})
   }
@@ -68,13 +66,30 @@ function DocumentQA() {
             会話をクリア
           </button>
           <div className="qa-doc-list">
-            <h4>登録済みドキュメント</h4>
-            {documents.length === 0 && <p className="qa-no-docs">なし</p>}
-            {documents.map((doc) => (
-              <div key={doc.filename} className="qa-doc-item">
-                {doc.filename}
-              </div>
-            ))}
+            <h4>ドキュメント</h4>
+            {documents.filter((d) => !d.filename.startsWith('minutes__')).length === 0 && (
+              <p className="qa-no-docs">なし</p>
+            )}
+            {documents
+              .filter((d) => !d.filename.startsWith('minutes__'))
+              .map((doc) => (
+                <div key={doc.filename} className="qa-doc-item">
+                  {doc.filename}
+                </div>
+              ))}
+          </div>
+          <div className="qa-doc-list">
+            <h4>音声議事録</h4>
+            {documents.filter((d) => d.filename.startsWith('minutes__')).length === 0 && (
+              <p className="qa-no-docs">なし</p>
+            )}
+            {documents
+              .filter((d) => d.filename.startsWith('minutes__'))
+              .map((doc) => (
+                <div key={doc.filename} className="qa-doc-item qa-doc-minutes">
+                  {doc.uploaded_at ? doc.uploaded_at.slice(0, 10) : '日付不明'}
+                </div>
+              ))}
           </div>
         </>
       }
@@ -82,8 +97,8 @@ function DocumentQA() {
       <div className="qa-container">
         {/* ヘッダー */}
         <div className="document-rag-header">
-          <h2>ドキュメント検索RAG</h2>
-          <p>ドキュメントの内容について質問できます</p>
+          <h2>ドキュメントQA RAG</h2>
+          <p>登録済みの文書に対してAIが該当箇所を検索し、質問に回答します</p>
         </div>
         <div className="qa-messages">
           {messages.length === 0 && <div className="qa-empty">質問を入力してください</div>}
