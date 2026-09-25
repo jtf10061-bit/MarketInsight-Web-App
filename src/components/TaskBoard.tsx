@@ -256,7 +256,15 @@ function TaskBoard() {
                                     <span className="due-date">{task.due_date}</span>
                                   )}
                                 </div>
-                                {task.source && <span className="task-source">{task.source}</span>}
+                                {task.source && (
+                                  <div className="task-source-list">
+                                    {task.source.split('、').map((s, i) => (
+                                      <span key={i} className="task-source">
+                                        {s}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                                 <div className="task-actions">
                                   {currentIndex > 0 && (
                                     <button
