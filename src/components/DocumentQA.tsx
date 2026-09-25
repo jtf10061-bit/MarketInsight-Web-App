@@ -223,7 +223,7 @@ function DocumentQA() {
       <div className="qa-container">
         {/* ヘッダー */}
         <div className="document-rag-header">
-          <h2>ドキュメントQA RAG</h2>
+          <h2>ドキュメントQAチャット RAG</h2>
           <p>登録済みの文書に対してAIが該当箇所を検索し、質問に回答します</p>
         </div>
         <div className="qa-messages">
