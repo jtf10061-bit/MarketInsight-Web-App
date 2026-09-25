@@ -191,3 +191,31 @@
   border-radius: 3px;
   font-size: 13px;
 }
+
+.qa-history-item {
+  font-size: 13px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qa-history-item:hover {
+  background: #e2e8f0;
+}
+
+.qa-history-question {
+  color: #334155;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qa-history-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
