@@ -33,6 +33,7 @@ function DocumentQA() {
 
     const question = input
     setInput('')
+    document.getElementById('qa-input')?.blur()
     const userMsg: QAMessage = {
       role: 'user',
       content: question,
@@ -256,10 +257,11 @@ function DocumentQA() {
         <div className="qa-input-area">
           <input
             type="text"
+            id="qa-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') askQuestion()
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) askQuestion()
             }}
             placeholder="ドキュメントについて質問する..."
           />
