@@ -367,7 +367,11 @@ function DocumentRag() {
           {/* ヘッダー */}
           <div className="document-rag-header">
             <h2>ドキュメント検索RAG</h2>
-            <p>PDFをアップロードして、内容について質問できます</p>
+            <p>
+              アップロード済みの文書から関連チャンクを検索して表示します。
+              <br />
+              AI回答が必要な場合はドキュメントQAをご利用ください。
+            </p>
           </div>
           {/* アップロードボタン */}
           <div className="document-rag-upload">
@@ -567,7 +571,9 @@ function DocumentRag() {
                     checked={selectedFileNames.includes(f.filename)}
                     onChange={() => toggleFileSelect(f.filename)}
                   />
-                  {f.filename} ({f.uploaded_at})
+                  {f.filename.startsWith('minutes__')
+                    ? `音声議事録 ${f.uploaded_at ? f.uploaded_at.slice(0, 10) : '日付不明'}`
+                    : `${f.filename} (${f.uploaded_at})`}
                   <button onClick={() => handleDelete(f.filename)} className="delete-button">
                     削除
                   </button>
