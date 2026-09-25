@@ -9,6 +9,7 @@ import { loginRequest } from './config/msalConfig'
 import DocumentRag from './components/DocumentRag'
 import MeetingMinutes from './components/MeetingMinutes'
 import DocumentSummary from './components/DocumentSummary'
+import TaskBoard from './components/TaskBoard'
 
 type Chat = {
   id: string
@@ -83,6 +84,7 @@ function App() {
     'document-rag': <DocumentRag />,
     'meeting-minutes': <MeetingMinutes />,
     'document-summary': <DocumentSummary />,
+    taskboard: <TaskBoard />,
     // 'pdf-rag': <div className="rag-placeholder"></div>,
   }
 
