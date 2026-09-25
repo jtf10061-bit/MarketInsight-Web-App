@@ -147,7 +147,7 @@ function DocumentQA() {
             ))}
           </div>
           <hr />
-          <h3>参照</h3>
+          <h3 className="qa-section-title">参照</h3>
           <div className="qa-doc-list">
             <h4>ドキュメント</h4>
             {documents.filter((d) => !d.filename.startsWith('minutes__')).length === 0 && (
