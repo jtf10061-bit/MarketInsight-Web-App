@@ -71,7 +71,13 @@ function DocumentQA() {
   const updateMessages = (newMessages: QAMessage[]) => {
     setMessages(newMessages)
     setSessions((prev) =>
-      prev.map((s) => (s.id === currentSessionId ? { ...s, messages: newMessages } : s)),
+      prev.map((s) => {
+        if (s.id === currentSessionId) {
+          saveSession(currentSessionId, newMessages, s.createdAt)
+          return { ...s, messages: newMessages }
+        }
+        return s
+      }),
     )
   }
 
@@ -89,15 +95,17 @@ function DocumentQA() {
     if (messages.length > 0 && currentSessionId) {
       setSessions((prev) => prev.map((s) => (s.id === currentSessionId ? { ...s, messages } : s)))
     }
-    const newId = Date.now().toString()
+    const newId = crypto.randomUUID()
+    const createdAt = new Date().toLocaleString() // ← この行を追加
     const newSession: QASession = {
       id: newId,
       messages: [],
-      createdAt: new Date().toLocaleString(),
+      createdAt,
     }
     setSessions((prev) => [newSession, ...prev])
     setCurrentSessionId(newId)
     setMessages([])
+    saveSession(newId, [], createdAt)
   }
 
   // 履歴を選択して過去のやり取りを表示
@@ -112,8 +120,42 @@ function DocumentQA() {
     }
   }
 
+  // セッションの取得・保存をAPIで行
+  const fetchSessions = () => {
+    fetch('http://localhost:9000/qa-sessions/test-user')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const loaded = data.map((d) => ({
+            id: d.id,
+            messages: d.messages || [],
+            createdAt: d.created_at || '',
+          }))
+          setSessions(loaded)
+          setCurrentSessionId(loaded[0].id)
+          setMessages(loaded[0].messages)
+        }
+      })
+      .catch(() => {})
+  }
+
+  // セッションをサーバーに保存する
+  const saveSession = (sessionId: string, msgs: QAMessage[], createdAt: string) => {
+    fetch('http://localhost:9000/qa-sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: sessionId,
+        user_id: 'test-user',
+        messages: msgs,
+        created_at: createdAt,
+      }),
+    }).catch(() => {})
+  }
+
   useEffect(() => {
     fetchDocuments()
+    fetchSessions()
   }, [])
 
   return (
