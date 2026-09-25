@@ -13,6 +13,7 @@ type Task = {
   priority: 'low' | 'medium' | 'high'
   due_date: string | null
   order_index: number
+  source?: string
 }
 
 function TaskBoard() {
@@ -255,22 +256,36 @@ function TaskBoard() {
                                     <span className="due-date">{task.due_date}</span>
                                   )}
                                 </div>
+                                {task.source && <span className="task-source">{task.source}</span>}
                                 <div className="task-actions">
                                   {currentIndex > 0 && (
                                     <button
-                                      onClick={() => moveTask(task.id, columns[currentIndex - 1])}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        moveTask(task.id, columns[currentIndex - 1])
+                                      }}
                                     >
                                       ←
                                     </button>
                                   )}
                                   {currentIndex < columns.length - 1 && (
                                     <button
-                                      onClick={() => moveTask(task.id, columns[currentIndex + 1])}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        moveTask(task.id, columns[currentIndex + 1])
+                                      }}
                                     >
                                       →
                                     </button>
                                   )}
-                                  <button onClick={() => deleteTask(task.id)}>🗑</button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      deleteTask(task.id)
+                                    }}
+                                  >
+                                    🗑
+                                  </button>
                                 </div>
                               </div>
                             )}
