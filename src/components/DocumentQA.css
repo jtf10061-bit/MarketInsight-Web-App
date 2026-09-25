@@ -183,22 +183,36 @@
   color: #334155;
 }
 
+.qa-bubble p {
+  margin: 0;
+}
+
+.qa-bubble p + p {
+  margin-top: 6px;
+}
+
 .qa-bubble h1,
 .qa-bubble h2,
 .qa-bubble h3 {
-  margin: 8px 0 4px 0;
+  margin: 8px 0 2px 0;
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .qa-bubble ul,
 .qa-bubble ol {
-  margin: 4px 0;
-  padding-left: 20px;
+  margin: 2px 0;
+  padding-left: 18px;
 }
 
-.qa-bubble p {
-  margin: 4px 0;
+.qa-bubble li {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.qa-bubble li + li {
+  margin-top: 2px;
 }
 
 .qa-bubble code {
@@ -206,6 +220,14 @@
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 13px;
+}
+
+.qa-bubble > :first-child {
+  margin-top: 0;
+}
+
+.qa-bubble > :last-child {
+  margin-bottom: 0;
 }
 
 .qa-history-item {
