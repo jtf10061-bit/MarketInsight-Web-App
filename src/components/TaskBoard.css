@@ -220,6 +220,16 @@
   gap: 6px;
 }
 
+.task-source {
+  font-size: 11px;
+  color: #8b5cf6;
+  background: #f3f0ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
 .stat-item {
   display: flex;
   justify-content: space-between;
