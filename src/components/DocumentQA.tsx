@@ -15,6 +15,7 @@ function DocumentQA() {
   const [loading, setLoading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [documents, setDocuments] = useState<{ filename: string; uploaded_at: string }[]>([])
+  const [histories, setHistories] = useState<{ question: string; timestamp: string }[]>([])
 
   const askQuestion = async () => {
     if (!input.trim() || loading) return
@@ -39,6 +40,7 @@ function DocumentQA() {
       setMessages((prev) => [...prev, { role: 'assistant', content: 'エラーが発生しました。' }])
     }
     setLoading(false)
+    setHistories((prev) => [{ question, timestamp: new Date().toLocaleTimeString() }, ...prev])
   }
 
   const fetchDocuments = () => {
@@ -90,6 +92,16 @@ function DocumentQA() {
                   {doc.uploaded_at ? doc.uploaded_at.slice(0, 10) : '日付不明'}
                 </div>
               ))}
+          </div>
+          <div className="qa-doc-list">
+            <h4>質問履歴</h4>
+            {histories.length === 0 && <p className="qa-no-docs">なし</p>}
+            {histories.map((h, i) => (
+              <div key={i} className="qa-history-item" onClick={() => setInput(h.question)}>
+                <span className="qa-history-question">{h.question}</span>
+                <span className="qa-history-time">{h.timestamp}</span>
+              </div>
+            ))}
           </div>
         </>
       }
