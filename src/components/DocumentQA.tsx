@@ -45,7 +45,9 @@ function DocumentQA() {
     fetch('http://localhost:9000/rag/files')
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setDocuments(data)
+        if (Array.isArray(data)) {
+          setDocuments(data.filter((d) => !d.filename.startsWith('minutes__')))
+        }
       })
       .catch(() => {})
   }
