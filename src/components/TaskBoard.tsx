@@ -33,6 +33,10 @@ function TaskBoard() {
   const [newDueDate, setNewDueDate] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [showMinutesModal, setShowMinutesModal] = useState(false)
+  const [minutesList, setMinutesList] = useState<{ id: string; filename: string }[]>([])
+  const [selectedMinutesIds, setSelectedMinutesIds] = useState<Set<string>>(new Set())
+  const [extracting, setExtracting] = useState(false)
 
   // Step3: データ取得 → 画面を表示するにはデータが必要なので、GETだけは作る
   const fetchTasks = () => {
@@ -115,6 +119,57 @@ function TaskBoard() {
     fetchTasks()
   }
 
+  // 議事録一覧を取得
+  const fetchMinutesList = () => {
+    fetch('http://localhost:9000/minutes/history/test-user')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setMinutesList(data)
+      })
+      .catch(() => {})
+  }
+
+  // 議事録の選択トグル
+  const toggleMinutesSelect = (id: string) => {
+    setSelectedMinutesIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  // 議事録からタスク抽出
+  const extractTasks = async () => {
+    if (selectedMinutesIds.size === 0) return
+    setExtracting(true)
+
+    // 1. 選択した議事録をベクトルDBに登録
+    for (const id of selectedMinutesIds) {
+      await fetch(`http://localhost:9000/minutes-rag/register/${id}`, {
+        method: 'POST',
+      })
+    }
+
+    // 2. タスク抽出
+    await fetch(`http://localhost:9000/minutes-rag/extract-tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        minutes_ids: Array.from(selectedMinutesIds),
+        user_id: 'test-user',
+      }),
+    })
+
+    setExtracting(false)
+    setShowMinutesModal(false)
+    setSelectedMinutesIds(new Set())
+    fetchTasks()
+  }
+
   useEffect(() => {
     fetchTasks()
   }, [])
@@ -128,6 +183,15 @@ function TaskBoard() {
       sidebar={
         // ← サイドバーの中身だけ
         <>
+          <button
+            className="extract-task-button"
+            onClick={() => {
+              fetchMinutesList()
+              setShowMinutesModal(true)
+            }}
+          >
+            議事録からタスク抽出
+          </button>
           <button className="add-task-button" onClick={() => setShowModal(true)}>
             + タスク追加
           </button>
@@ -295,6 +359,35 @@ function TaskBoard() {
               <div className="modal-actions">
                 <button onClick={updateTask}>保存</button>
                 <button onClick={() => setEditingTask(null)}>キャンセル</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showMinutesModal && (
+          <div className="modal-overlay" onClick={() => setShowMinutesModal(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h3>議事録を選択</h3>
+              <div className="minutes-select-list">
+                {minutesList.map((m) => (
+                  <label key={m.id} className="minutes-select-item">
+                    <input
+                      type="checkbox"
+                      checked={selectedMinutesIds.has(m.id)}
+                      onChange={() => toggleMinutesSelect(m.id)}
+                    />
+                    <span>{m.filename}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="modal-actions">
+                <button
+                  onClick={extractTasks}
+                  disabled={extracting || selectedMinutesIds.size === 0}
+                >
+                  {extracting ? '抽出中...' : `${selectedMinutesIds.size} 件からタスク抽出`}
+                </button>
+                <button onClick={() => setShowMinutesModal(false)}>キャンセル</button>
               </div>
             </div>
           </div>
