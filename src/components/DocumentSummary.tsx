@@ -227,7 +227,11 @@ function DocumentSummary() {
         <div className="document-summary">
           <div className="document-summary-header">
             <h3>要約生成</h3>
-            <p>ファイルを選択またはアップロードして、内容を要約できます</p>
+            <p>
+              ファイルをアップロードして要約を生成します。
+              <br />
+              アップロードした文書はドキュメントQAの検索対象にもなります。
+            </p>
           </div>
 
           {/* アップロードボタン */}
