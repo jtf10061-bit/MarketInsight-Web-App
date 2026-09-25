@@ -252,3 +252,42 @@
   background: #dcfce7;
   color: #16a34a;
 }
+
+.extract-task-button {
+  width: 100%;
+  padding: 8px 16px;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.extract-task-button:hover {
+  background: #7c3aed;
+}
+
+.minutes-select-list {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.minutes-select-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f8fafc;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.minutes-select-item:hover {
+  background: #f1f5f9;
+}
