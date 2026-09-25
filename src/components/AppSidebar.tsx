@@ -12,6 +12,7 @@ const APPS: AppItem[] = [
   { id: 'document-rag', name: 'ドキュメント検索RAG', icon: '📄' },
   { id: 'meeting-minutes', name: '議事録作成', icon: '📄' },
   { id: 'document-summary', name: '要約生成', icon: '📄' },
+  { id: 'taskboard', name: 'タスク一覧', icon: '📄' },
   { id: 'pdf-rag', name: 'PDF書き起こしRAG', icon: '💬' },
 ]
 
